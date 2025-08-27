@@ -15,8 +15,8 @@ export default function ResumePage() {
   }, [])
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex flex-col xl:flex-row">
-      <div className={`w-full xl:w-1/2 p-4 sm:p-8 relative z-10 ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+    <div className="relative min-h-screen overflow-hidden flex flex-wrap">
+      <div className={`flex-grow min-w-[640px] p-4 sm:p-8 relative z-10 ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
         {/* Theme toggle button in top right of left panel */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
@@ -50,60 +50,121 @@ export default function ResumePage() {
 
         {/* Experience Section */}
         <div className="mb-12">
-          <table className="w-full text-sm lg:text-base xl:text-lg table-fixed">
+          {/* Mobile Layout - Stack Company Name, then Role + Date */}
+          <div className="block sm:hidden space-y-4 text-sm">
+            <div>
+              <div className="font-medium">Conductor Quantum</div>
+              <div className="opacity-75">Co-Founder & CTO • Jun 2024 - Present</div>
+                <div className="font-mono"></div>
+            </div>
+            <div>
+              <div className="font-medium">QuantrolOx</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">Applied Researcher • Dec 2022 - May 2024</span>
+              </div>
+            </div>
+            <div>
+              <div className="font-medium">Feynman</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">Co-Founder & CTO • Dec 2022 - May 2024</span>
+              </div>
+            </div>
+            <div>
+              <div className="font-medium">C12</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">Research Intern • Jun 2022 - Sep 2022</span>
+              </div>
+            </div>
+            <div>
+              <div className="font-medium">Quantum Motion</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">Research Intern • Jun 2021 - Sep 2021</span>
+              </div>
+            </div>
+            <div>
+              <div className="font-medium">Quantum Motion</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">Research Intern • Jun 2020 - Sep 2020</span>
+              </div>
+            </div>
+            
+            <div className="py-2"></div>
+            
+            <div>
+              <div className="font-medium">Oxford</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">DPhil • Oct 2023 - May 2024</span>
+              </div>
+            </div>
+            <div>
+              <div className="font-medium">Y Combinator</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">S24 • Jul 2024 - Sep 2024</span>
+              </div>
+            </div>
+            <div>
+              <div className="font-medium">UCL</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">MSci • Sep 2018 - Jun 2022</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Table Layout */}
+          <table className="hidden sm:table text-base w-[600px] lg:text-lg lg:w-[640px]">
             <colgroup>
-              <col className="w-[35%]" />
-              <col className="w-[40%]" />
-              <col className="w-[25%]" />
+              <col className="w-30 lg:w-56" />
+              <col className="w-30 lg:w-64" />
+              <col className="w-28 lg:w-32" />
             </colgroup>
             <tbody>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Conductor Quantum</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Co-Founder & CTO</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2024 → Present</td>
+                <td className=" overflow-hidden text-ellipsis whitespace-nowrap">Conductor Quantum</td>
+                <td className=" overflow-hidden text-ellipsis whitespace-nowrap">Co-Founder & CTO</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2024 - Present</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">QuantrolOx</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Applied Researcher</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Dec 2022 → May 2024</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">QuantrolOx</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Applied Researcher</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Dec 2022 - May 2024</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Feynman</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Co-Founder & CTO</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Dec 2022 → May 2024</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Feynman</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Co-Founder & CTO</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Dec 2022 - May 2024</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">C12</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2022 → Sep 2022</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">C12</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2022 - Sep 2022</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Quantum Motion</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2021 → Sep 2021</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Quantum Motion</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2021 - Sep 2021</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Quantum Motion</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2020 → Sep 2020</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Quantum Motion</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2020 - Sep 2020</td>
               </tr>
               <tr>
-                <td className="py-2" colspan="3"></td>
+                <td className="py-4" colSpan={3}></td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Oxford</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">DPhil</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Oct 2023 → May 2024</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Oxford</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">DPhil</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Oct 2023 - May 2024</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Y Combinator</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">S24</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jul 2024 → Sep 2024</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">Y Combinator</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">S24</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jul 2024 - Sep 2024</td>
               </tr>
               <tr>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">UCL</td>
-                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">MSci</td>
-                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Sep 2018 → Jun 2022</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">UCL</td>
+                <td className="overflow-hidden text-ellipsis whitespace-nowrap">MSci</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Sep 2018 - Jun 2022</td>
               </tr>
             </tbody>
           </table>
@@ -112,7 +173,7 @@ export default function ResumePage() {
 
 
         {/* Footer Links Section */}
-        <div className="mt-8 lg:absolute lg:bottom-8 lg:left-4 xl:left-8">
+        <div className="mt-8">
           <div className="flex space-x-4 text-sm">
             <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>
             <a href="https://www.linkedin.com/in/joelpendleton" className="hover:opacity-70">LinkedIn</a>
@@ -122,7 +183,7 @@ export default function ResumePage() {
         </div>
       </div>
 
-      <div className="w-full  l:w-1/2 h-64 lg:h-auto relative">
+      <div className="flex-grow min-w-1/2 h-64 md:min-h-screen relative">
         <Dithering
           style={{ height: "100%", width: "100%" }}
           colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 95%)"}
