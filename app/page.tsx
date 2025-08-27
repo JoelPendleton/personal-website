@@ -1,13 +1,13 @@
 "use client"
 
-import { Dithering, DitheringShapes } from "@paper-design/shaders-react"
+import { Dithering } from "@paper-design/shaders-react"
 import { useState, useMemo } from "react"
 
 export default function ResumePage() {
   const [isDarkMode, setIsDarkMode] = useState(true)
   
   // Available shapes from the Dithering component
-  const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl']
+  const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
   
   // Randomly select a shape on each render
   const randomShape = useMemo(() => {
@@ -199,7 +199,7 @@ export default function ResumePage() {
           style={{ height: "100%", width: "100%" }}
           colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 95%)"}
           colorFront="hsl(220, 100%, 70%)"
-          shape={randomShape as DitheringShapes}
+          shape={randomShape}
           type="4x4"
           pxSize={3}
           offsetX={0}
