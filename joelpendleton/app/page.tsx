@@ -15,29 +15,31 @@ export default function ResumePage() {
   }, [])
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex flex-wrap">
-      <div className={`flex-grow min-w-[640px] p-4 sm:p-8 relative z-10 flex flex-col ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+    <div className="relative min-h-screen flex flex-wrap">
+      <div className={`flex-grow min-w-0 sm:min-w-[640px] p-4 sm:p-8 relative z-10 flex flex-col ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
         {/* Theme toggle button in top right of left panel */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className={`absolute top-4 sm:top-8 right-4 sm:right-8 p-2 rounded-full transition-colors ${
-            isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
-          }`}
-          aria-label="Toggle theme"
-        >
-          {isDarkMode ? (
-            // Sun icon for light mode
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="5" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          ) : (
-            // Moon icon for dark mode
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          )}
-        </button>
+        <div className="flex justify-end mb-2 sm:mb-0">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-full transition-colors ${
+              isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+            }`}
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? (
+              // Sun icon for light mode
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+              </svg>
+            ) : (
+              // Moon icon for dark mode
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+        </div>
 
         {/* Main content wrapper */}
         <div className="flex-grow">
