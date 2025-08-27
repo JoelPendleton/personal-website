@@ -1,0 +1,21 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#111111;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#gradient)"/>
+  
+  <!-- Large J background -->
+  <text x="180" y="420" font-family="system-ui, -apple-system, sans-serif" font-size="300" font-weight="bold" fill="#ffffff" opacity="0.1">J</text>
+  
+  <!-- Main text -->
+  <text x="400" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="bold" fill="#ffffff">Joel Pendleton</text>
+  <text x="400" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="400" fill="#cccccc">CTO at Conductor Quantum</text>
+  <text x="400" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="300" fill="#999999">Building quantum computers on silicon chips</text>
+  
+  <!-- Accent elements -->
+  <circle cx="1050" cy="150" r="80" fill="none" stroke="#444444" stroke-width="2"/>
+  <circle cx="1050" cy="150" r="40" fill="none" stroke="#666666" stroke-width="1"/>
+</svg>
