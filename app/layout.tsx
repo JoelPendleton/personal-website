@@ -31,22 +31,7 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://joelpendleton.com",
-    siteName: "Joel Pendleton",
-    title: "Joel Pendleton - CTO at Conductor Quantum",
-    description: "Joel Pendleton is CTO and Co-Founder at Conductor Quantum, building quantum computers on silicon chips. Previously at Oxford, Y Combinator S24, and various quantum computing companies.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    site: "@joelpendleton",
-    creator: "@joelpendleton",
-    title: "Joel Pendleton - CTO at Conductor Quantum",
-    description: "Joel Pendleton is CTO and Co-Founder at Conductor Quantum, building quantum computers on silicon chips. Previously at Oxford, Y Combinator S24, and various quantum computing companies.",
-  },
-  alternates: {
+    alternates: {
     canonical: "https://joelpendleton.com",
   },
 };
