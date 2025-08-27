@@ -15,8 +15,8 @@ export default function ResumePage() {
   }, [])
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex flex-col lg:flex-row">
-      <div className={`w-full lg:w-1/2 p-4 sm:p-8 relative z-10 ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+    <div className="relative min-h-screen overflow-hidden flex flex-col xl:flex-row">
+      <div className={`w-full xl:w-1/2 p-4 sm:p-8 relative z-10 ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
         {/* Theme toggle button in top right of left panel */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
@@ -50,57 +50,60 @@ export default function ResumePage() {
 
         {/* Experience Section */}
         <div className="mb-12">
-          <table className="w-full text-sm  xl:text-lg">
+          <table className="w-full text-sm lg:text-base xl:text-lg table-fixed">
+            <colgroup>
+              <col className="w-[35%]" />
+              <col className="w-[40%]" />
+              <col className="w-[25%]" />
+            </colgroup>
             <tbody>
               <tr>
-                <td className="w-1/4 sm:w-52 pr-2 sm:pr-4">Conductor Quantum</td>
-                <td className="w-1/3 sm:w-60 pr-2 sm:pr-4">Co-Founder & CTO</td>
-                <td className="text-right sm:text-left">Jun 2024 → Present</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Conductor Quantum</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Co-Founder & CTO</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2024 → Present</td>
               </tr>
               <tr>
-                <td className="w-1/4 sm:w-52 pr-2 sm:pr-4">QuantrolOx</td>
-                <td className="w-1/3 sm:w-60 pr-2 sm:pr-4">Applied Researcher</td>
-                <td className="text-right sm:text-left">Dec 2022 → May 2024</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">QuantrolOx</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Applied Researcher</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Dec 2022 → May 2024</td>
               </tr>
               <tr>
-                <td className="w-1/4 sm:w-52 pr-2 sm:pr-4">Feynman</td>
-                <td className="w-1/3 sm:w-60 pr-2 sm:pr-4">Co-Founder & CTO</td>
-                <td className="text-right sm:text-left">Dec 2022 → May 2024</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Feynman</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Co-Founder & CTO</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Dec 2022 → May 2024</td>
               </tr>
               <tr>
-                <td className="w-1/4 sm:w-52 pr-2 sm:pr-4">C12</td>
-                <td className="w-1/3 sm:w-60 pr-2 sm:pr-4">Research Intern</td>
-                <td className="text-right sm:text-left">Jun 2022 → Sep 2022</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">C12</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2022 → Sep 2022</td>
               </tr>
               <tr>
-                <td className="w-1/4 sm:w-52 pr-2 sm:pr-4">Quantum Motion</td>
-                <td className="w-1/3 sm:w-60 pr-2 sm:pr-4">Research Intern</td>
-                <td className="text-right sm:text-left">Jun 2021 → Sep 2021</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Quantum Motion</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2021 → Sep 2021</td>
               </tr>
               <tr>
-                <td className="w-1/4 sm:w-52 pr-2 sm:pr-4">Quantum Motion</td>
-                <td className="w-1/3 sm:w-60 pr-2 sm:pr-4">Research Intern</td>
-                <td className="text-right sm:text-left">Jun 2020 → Sep 2020</td>
-              </tr>
-              <tr className="">
-                <td className="w-1/4 md:w-52 pr-2 md:pr-4">&nbsp;</td>
-                <td className="w-1/3 md:w-60 pr-2 md:pr-4">&nbsp;</td>
-                <td className="text-right sm:text-left">&nbsp;</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Quantum Motion</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Research Intern</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jun 2020 → Sep 2020</td>
               </tr>
               <tr>
-                <td className="w-1/4 md:w-52 pr-2 md:pr-4">Oxford</td>
-                <td className="w-1/3 md:w-60 pr-2 md:pr-4">DPhil</td>
-                <td className="text-right sm:text-left">Oct 2023 → May 2024</td>
+                <td className="py-2" colspan="3"></td>
               </tr>
               <tr>
-                <td className="w-1/4 md:w-52 pr-2 md:pr-4">Y Combinator</td>
-                <td className="w-1/3 md:w-60 pr-2 md:pr-4">S24</td>
-                <td className="text-right sm:text-left">Jul 2024 → Sep 2024</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Oxford</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">DPhil</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Oct 2023 → May 2024</td>
               </tr>
               <tr>
-                <td className="w-1/4 md:w-52 pr-2 md:pr-4">UCL</td>
-                <td className="w-1/3 md:w-60 pr-2 md:pr-4">MSci</td>
-                <td className="text-right sm:text-left">Sep 2018 → Jun 2022</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">Y Combinator</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">S24</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Jul 2024 → Sep 2024</td>
+              </tr>
+              <tr>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">UCL</td>
+                <td className="pr-2 lg:pr-4 overflow-hidden text-ellipsis whitespace-nowrap">MSci</td>
+                <td className="font-mono overflow-hidden text-ellipsis whitespace-nowrap">Sep 2018 → Jun 2022</td>
               </tr>
             </tbody>
           </table>
