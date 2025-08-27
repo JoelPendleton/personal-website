@@ -15,8 +15,8 @@ export default function ResumePage() {
   }, [])
 
   return (
-    <div className="relative min-h-screen flex flex-wrap">
-      <div className={`flex-grow min-w-0 sm:min-w-[640px] p-4 sm:p-8 relative z-10 flex flex-col ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+    <div className="relative min-h-screen grid grid-cols-1 xl:grid-cols-[1fr_1fr]">
+      <div className={`p-4 sm:p-8 relative z-10 flex flex-col ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
         {/* Theme toggle button in top right of left panel */}
         <div className="flex justify-end mb-2 sm:mb-0">
           <button
@@ -116,7 +116,7 @@ export default function ResumePage() {
           </div>
 
           {/* Desktop Table Layout */}
-          <table className="hidden sm:table text-base w-[600px] lg:text-lg lg:w-[640px]">
+          <table className="hidden sm:table text-base w-[600px] xl:text-lg lg:w-[640px]">
             <colgroup>
               <col className="w-30 lg:w-56" />
               <col className="w-30 lg:w-64" />
@@ -194,7 +194,7 @@ export default function ResumePage() {
         </div>
       </div>
 
-      <div className="flex-grow min-w-1/2 h-min-screen  relative">
+      <div className="relative min-h-32 xl:min-h-screen">
         <Dithering
           style={{ height: "100%", width: "100%" }}
           colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 95%)"}
