@@ -73,7 +73,12 @@ export default function ResumePage() {
                 <span className="opacity-75">Applied Researcher • Dec 2022 - May 2024</span>
               </div>
             </div>
-
+            <div>
+              <div className="font-medium">Unify</div>
+              <div className="flex justify-between">
+                <span className="opacity-75">ML Engineer Intern • Oct 2022 - Nov 2022</span>
+              </div>
+            </div>
             <div>
               <div className="font-medium">C12</div>
               <div className="flex justify-between">
@@ -197,7 +202,7 @@ export default function ResumePage() {
       <div className="relative min-h-32 xl:min-h-screen">
         <Dithering
           style={{ height: "100%", width: "100%" }}
-          colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 95%)"}
+          colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 100%)"}
           colorFront="hsl(220, 100%, 70%)"
           shape={randomShape}
           type="4x4"
