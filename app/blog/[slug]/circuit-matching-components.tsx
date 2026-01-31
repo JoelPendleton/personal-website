@@ -4,16 +4,13 @@ import { useState, useEffect } from "react"
 
 // Design tokens matching the site
 const colors = {
-  accent: "hsl(220, 100%, 70%)", // Blue accent from dithering
-  accentDim: "hsl(220, 60%, 50%)",
-  good: "hsl(142, 70%, 45%)", // Green for high quality
-  bad: "hsl(0, 70%, 50%)", // Red for low quality
-  warning: "hsl(45, 80%, 50%)", // Yellow/orange for medium
+  accent: "hsl(220, 100%, 70%)",
+  good: "hsl(142, 70%, 45%)",
+  bad: "hsl(0, 70%, 50%)",
 }
 
 // Get quality color from red (bad) to green (good)
 function getQualityColor(quality: number): string {
-  // Map 0.85-1.0 quality to hue from 0 (red) to 142 (green)
   const normalizedQuality = Math.max(0, Math.min(1, (quality - 0.85) / 0.15))
   const hue = normalizedQuality * 142
   return `hsl(${hue}, 70%, 50%)`
@@ -29,19 +26,15 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
   const strokeDim = isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
+    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
       <div className="px-6 py-5">
         <div className="flex flex-col items-center gap-6">
           <div className="flex items-center gap-6 flex-wrap justify-center">
-            {/* SWAP Gate Symbol */}
             <svg width="140" height="80" viewBox="0 0 140 80">
               <line x1="20" y1="25" x2="120" y2="25" stroke={stroke} strokeWidth="1" />
               <line x1="20" y1="55" x2="120" y2="55" stroke={stroke} strokeWidth="1" />
-              
               <text x="12" y="29" fill={stroke} fontSize="13" fontFamily="monospace" textAnchor="end">q₁</text>
               <text x="12" y="59" fill={stroke} fontSize="13" fontFamily="monospace" textAnchor="end">q₂</text>
-              
-              {/* SWAP X symbols */}
               <line x1="65" y1="20" x2="75" y2="30" stroke={stroke} strokeWidth="1.5" />
               <line x1="75" y1="20" x2="65" y2="30" stroke={stroke} strokeWidth="1.5" />
               <line x1="65" y1="50" x2="75" y2="60" stroke={stroke} strokeWidth="1.5" />
@@ -51,26 +44,19 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
             
             <span className="text-xl opacity-40">=</span>
             
-            {/* Three CNOT Gates */}
             <svg width={showDecomposition ? "300" : "140"} height="80" viewBox={showDecomposition ? "0 0 300 80" : "0 0 140 80"} className="transition-all duration-300">
               <line x1="20" y1="25" x2={showDecomposition ? "280" : "120"} y2="25" stroke={stroke} strokeWidth="1" />
               <line x1="20" y1="55" x2={showDecomposition ? "280" : "120"} y2="55" stroke={stroke} strokeWidth="1" />
-              
               {showDecomposition ? (
                 <>
-                  {/* CNOT 1 */}
                   <circle cx="70" cy="55" r="4" fill={stroke} />
                   <line x1="70" y1="55" x2="70" y2="25" stroke={stroke} strokeWidth="1" />
                   <circle cx="70" cy="25" r="8" fill="none" stroke={stroke} strokeWidth="1" />
                   <line x1="70" y1="17" x2="70" y2="33" stroke={stroke} strokeWidth="1" />
-                  
-                  {/* CNOT 2 */}
                   <circle cx="150" cy="25" r="4" fill={stroke} />
                   <line x1="150" y1="25" x2="150" y2="55" stroke={stroke} strokeWidth="1" />
                   <circle cx="150" cy="55" r="8" fill="none" stroke={stroke} strokeWidth="1" />
                   <line x1="150" y1="47" x2="150" y2="63" stroke={stroke} strokeWidth="1" />
-                  
-                  {/* CNOT 3 */}
                   <circle cx="230" cy="55" r="4" fill={stroke} />
                   <line x1="230" y1="55" x2="230" y2="25" stroke={stroke} strokeWidth="1" />
                   <circle cx="230" cy="25" r="8" fill="none" stroke={stroke} strokeWidth="1" />
@@ -90,7 +76,7 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
           </button>
         </div>
       </div>
-      <div className={`px-6 py-4 text-sm opacity-60 border-t ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+      <div className={`px-6 py-4 text-sm opacity-50`}>
         A SWAP gate exchanges quantum states between two qubits. It requires 3 CNOT operations, 
         so each SWAP inherits 3× the two-qubit gate error.
       </div>
@@ -148,17 +134,26 @@ const TOPOLOGY_EDGES: QubitEdge[] = [
   { from: 9, to: 10, quality: 0.92 },
 ]
 
-function getQualityOpacity(quality: number): number {
-  // Map 0.85-1.0 to 0.3-1.0 opacity
-  return 0.3 + (quality - 0.85) * (0.7 / 0.15)
-}
-
 export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
   const [hoveredQubit, setHoveredQubit] = useState<number | null>(null)
   const [hoveredEdge, setHoveredEdge] = useState<{from: number, to: number} | null>(null)
   const [selectedQubits, setSelectedQubits] = useState<number[]>([])
-  
-  const stroke = isDarkMode ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)"
+  const [lastHovered, setLastHovered] = useState<{ type: 'qubit' | 'edge', qubit?: number, edge?: {from: number, to: number} } | null>(null)
+
+  // Update last hovered when hovering changes
+  const handleQubitHover = (id: number | null) => {
+    setHoveredQubit(id)
+    if (id !== null) {
+      setLastHovered({ type: 'qubit', qubit: id })
+    }
+  }
+
+  const handleEdgeHover = (edge: {from: number, to: number} | null) => {
+    setHoveredEdge(edge)
+    if (edge !== null) {
+      setLastHovered({ type: 'edge', edge })
+    }
+  }
 
   const toggleQubitSelection = (id: number) => {
     if (selectedQubits.includes(id)) {
@@ -176,15 +171,52 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
     return edges.length >= qubits.length - 1
   }
 
+  // BFS to find shortest path between two qubits
+  const findShortestPath = (start: number, end: number): number[] | null => {
+    if (start === end) return [start]
+    const queue: number[][] = [[start]]
+    const visited = new Set<number>([start])
+    
+    while (queue.length > 0) {
+      const path = queue.shift()!
+      const current = path[path.length - 1]
+      
+      // Find neighbors
+      const neighbors = TOPOLOGY_EDGES
+        .filter(e => e.from === current || e.to === current)
+        .map(e => e.from === current ? e.to : e.from)
+      
+      for (const neighbor of neighbors) {
+        if (neighbor === end) return [...path, neighbor]
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor)
+          queue.push([...path, neighbor])
+        }
+      }
+    }
+    return null
+  }
+
+  // Calculate SWAP info for non-connected selections
+  const getSwapInfo = (): { swaps: number; via: number[] } | null => {
+    if (selectedQubits.length !== 2) return null
+    const path = findShortestPath(selectedQubits[0], selectedQubits[1])
+    if (!path || path.length <= 2) return null
+    return {
+      swaps: path.length - 2,
+      via: path.slice(1, -1)
+    }
+  }
+
   const connected = isConnected(selectedQubits)
+  const swapInfo = !connected ? getSwapInfo() : null
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
+    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
       <div className="p-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="flex-shrink-0">
             <svg width="310" height="170" viewBox="0 0 310 170">
-              {/* Edges drawn first (behind nodes) */}
               {TOPOLOGY_EDGES.map((edge, i) => {
                 const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
                 const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
@@ -198,15 +230,14 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
                     x2={toQubit.x}
                     y2={toQubit.y}
                     stroke={isSelected ? colors.accent : getQualityColor(edge.quality)}
-                    strokeWidth={isHovered || isSelected ? 3 : 2}
+                    strokeWidth={isHovered || isSelected ? 2.5 : 1.5}
                     opacity={isSelected ? 1 : isHovered ? 0.9 : 0.5}
                     className="cursor-pointer transition-all duration-150"
-                    onMouseEnter={() => setHoveredEdge(edge)}
-                    onMouseLeave={() => setHoveredEdge(null)}
+                    onMouseEnter={() => handleEdgeHover(edge)}
+                    onMouseLeave={() => handleEdgeHover(null)}
                   />
                 )
               })}
-              {/* Qubit nodes drawn last (on top of edges) */}
               {TOPOLOGY_QUBITS.map((qubit) => {
                 const isSelected = selectedQubits.includes(qubit.id)
                 const isHovered = hoveredQubit === qubit.id
@@ -216,12 +247,12 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
                     <circle
                       cx={qubit.x}
                       cy={qubit.y}
-                      r={isHovered || isSelected ? 15 : 13}
+                      r={isHovered || isSelected ? 14 : 12}
                       fill={nodeColor}
                       opacity={isSelected ? 1 : isHovered ? 0.95 : 0.85}
                       className="transition-all duration-150"
-                      onMouseEnter={() => setHoveredQubit(qubit.id)}
-                      onMouseLeave={() => setHoveredQubit(null)}
+                      onMouseEnter={() => handleQubitHover(qubit.id)}
+                      onMouseLeave={() => handleQubitHover(null)}
                     />
                     <text
                       x={qubit.x}
@@ -242,43 +273,74 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
           </div>
           
           <div className="flex-1 text-sm space-y-4">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.bad }} />
-                <span className="opacity-70">Low quality</span>
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.bad }} />
+                <span className="opacity-60">Low</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors.good }} />
-                <span className="opacity-70">High quality</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.good }} />
+                <span className="opacity-60">High</span>
               </div>
             </div>
 
-            <div className={`p-4 rounded ${isDarkMode ? "bg-white/[0.03]" : "bg-black/[0.03]"}`}>
-              <p className="opacity-70 mb-2">Select up to 3 qubits</p>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="opacity-50 text-xs">Select up to 3 qubits</p>
+                {selectedQubits.length > 0 && (
+                  <button
+                    onClick={() => setSelectedQubits([])}
+                    className={`text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-80 ${isDarkMode ? "bg-white/10 text-white/60" : "bg-black/10 text-black/60"}`}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
               {selectedQubits.length > 0 ? (
                 <>
-                  <p className="font-mono">{selectedQubits.map(q => `Q${q}`).join(" → ")}</p>
+                  <p className="font-mono">
+                    {selectedQubits.map((q, i) => {
+                      const qubit = TOPOLOGY_QUBITS.find(qb => qb.id === q)!
+                      return (
+                        <span key={q}>
+                          {i > 0 && <span className="opacity-40"> → </span>}
+                          <span>Q{q}</span>
+                          <span className="opacity-50 text-xs ml-1">({(qubit.quality * 100).toFixed(0)}%)</span>
+                        </span>
+                      )
+                    })}
+                  </p>
                   {selectedQubits.length > 1 && (
-                    <p className={`mt-1`} style={{ color: connected ? colors.good : colors.bad }}>
-                      {connected ? "✓ Connected" : "✗ Not directly connected — needs SWAP"}
+                    <p className="text-sm mt-1" style={{ color: connected ? colors.good : colors.bad }}>
+                      {connected 
+                        ? "Connected" 
+                        : swapInfo 
+                          ? `Not connected — needs ${swapInfo.swaps} SWAP${swapInfo.swaps > 1 ? 's' : ''} (via ${swapInfo.via.map(q => `Q${q}`).join(', ')})`
+                          : "Not connected — needs SWAP"}
                     </p>
                   )}
                 </>
               ) : (
-                <p className="opacity-50">Click qubits to select</p>
+                <div className={`px-3 py-2 rounded border border-dashed ${isDarkMode ? "border-white/20" : "border-black/20"}`}>
+                  <p className="opacity-50 text-sm">Click qubits in the graph to select them</p>
+                </div>
               )}
             </div>
 
-            {(hoveredQubit !== null || hoveredEdge) && (
-              <div className="font-mono text-xs opacity-80">
-                {hoveredQubit !== null && (
-                  <p>Q{hoveredQubit} · T₂ quality: <span style={{ color: getQualityColor(TOPOLOGY_QUBITS[hoveredQubit].quality) }}>{(TOPOLOGY_QUBITS[hoveredQubit].quality * 100).toFixed(0)}%</span></p>
-                )}
-                {hoveredEdge && (
-                  <p>Q{hoveredEdge.from}↔Q{hoveredEdge.to} · Gate fidelity: <span style={{ color: getQualityColor(TOPOLOGY_EDGES.find(e => e.from === hoveredEdge.from && e.to === hoveredEdge.to)!.quality) }}>{(TOPOLOGY_EDGES.find(e => e.from === hoveredEdge.from && e.to === hoveredEdge.to)!.quality * 100).toFixed(0)}%</span></p>
-                )}
-              </div>
-            )}
+            {/* Info panel - shows active hover or last hovered */}
+            <div className={`font-mono text-xs transition-opacity ${hoveredQubit !== null || hoveredEdge ? "opacity-80" : "opacity-50"}`}>
+              {hoveredQubit !== null ? (
+                <p>Q{hoveredQubit}: <span style={{ color: getQualityColor(TOPOLOGY_QUBITS[hoveredQubit].quality) }}>{(TOPOLOGY_QUBITS[hoveredQubit].quality * 100).toFixed(0)}%</span> fidelity</p>
+              ) : hoveredEdge ? (
+                <p>Q{hoveredEdge.from}↔Q{hoveredEdge.to}: <span style={{ color: getQualityColor(TOPOLOGY_EDGES.find(e => e.from === hoveredEdge.from && e.to === hoveredEdge.to)!.quality) }}>{(TOPOLOGY_EDGES.find(e => e.from === hoveredEdge.from && e.to === hoveredEdge.to)!.quality * 100).toFixed(0)}%</span> gate fidelity</p>
+              ) : lastHovered?.type === 'qubit' && lastHovered.qubit !== undefined ? (
+                <p>Q{lastHovered.qubit}: <span style={{ color: getQualityColor(TOPOLOGY_QUBITS[lastHovered.qubit].quality) }}>{(TOPOLOGY_QUBITS[lastHovered.qubit].quality * 100).toFixed(0)}%</span> fidelity</p>
+              ) : lastHovered?.type === 'edge' && lastHovered.edge ? (
+                <p>Q{lastHovered.edge.from}↔Q{lastHovered.edge.to}: <span style={{ color: getQualityColor(TOPOLOGY_EDGES.find(e => e.from === lastHovered.edge!.from && e.to === lastHovered.edge!.to)!.quality) }}>{(TOPOLOGY_EDGES.find(e => e.from === lastHovered.edge!.from && e.to === lastHovered.edge!.to)!.quality * 100).toFixed(0)}%</span> gate fidelity</p>
+              ) : (
+                <p className="opacity-60">Hover over qubits or edges to see quality</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -299,14 +361,12 @@ function QuantumCircuit({
   numQubits, 
   gates, 
   labels,
-  physicalLabels,
   width = 320, 
   isDarkMode 
 }: {
   numQubits: number
   gates: Gate[]
   labels?: string[]
-  physicalLabels?: string[]
   width?: number
   isDarkMode: boolean
 }) {
@@ -314,25 +374,19 @@ function QuantumCircuit({
   const strokeDim = isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"
   const height = numQubits * 40 + 20
   const gateSpacing = 50
-  const startX = physicalLabels ? 70 : 50
+  const startX = 50
   const qubitY = (i: number) => 20 + i * 40
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      {/* Qubit lines */}
       {Array.from({ length: numQubits }).map((_, i) => (
         <g key={i}>
           <line x1="30" y1={qubitY(i)} x2={width - 10} y2={qubitY(i)} stroke={strokeDim} strokeWidth="1" />
           {labels && (
             <text x="8" y={qubitY(i) + 4} fill={stroke} fontSize="12" fontFamily="monospace">{labels[i]}</text>
           )}
-          {physicalLabels && (
-            <text x="28" y={qubitY(i) + 4} fill={strokeDim} fontSize="10" fontFamily="monospace">({physicalLabels[i]})</text>
-          )}
         </g>
       ))}
-
-      {/* Gates */}
       {gates.map((gate, gateIdx) => {
         const x = startX + gateIdx * gateSpacing
         const gateStroke = gate.highlight ? colors.accent : stroke
@@ -341,7 +395,6 @@ function QuantumCircuit({
           const [control, target] = gate.qubits
           const controlY = qubitY(control)
           const targetY = qubitY(target)
-          
           return (
             <g key={gateIdx}>
               <line x1={x} y1={Math.min(controlY, targetY)} x2={x} y2={Math.max(controlY, targetY)} stroke={gateStroke} strokeWidth="1" />
@@ -357,7 +410,6 @@ function QuantumCircuit({
           const [q1, q2] = gate.qubits
           const y1 = qubitY(q1)
           const y2 = qubitY(q2)
-          
           return (
             <g key={gateIdx}>
               <line x1={x} y1={y1} x2={x} y2={y2} stroke={gateStroke} strokeWidth="1" />
@@ -368,7 +420,6 @@ function QuantumCircuit({
             </g>
           )
         }
-
         return null
       })}
     </svg>
@@ -378,71 +429,56 @@ function QuantumCircuit({
 // ============================================
 // Circuit Placement Demo
 // ============================================
-
-// Mini topology for placement comparison
-function PlacementTopology({ 
-  highlightQubits, 
-  isDarkMode,
-  label 
-}: { 
-  highlightQubits: number[]
-  isDarkMode: boolean
-  label: string
-}) {
+function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: number[], isDarkMode: boolean }) {
   const stroke = isDarkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"
   
   return (
-    <div>
-      <svg width="200" height="120" viewBox="0 0 310 170">
-        {/* Draw edges first */}
-        {TOPOLOGY_EDGES.map((edge, i) => {
-          const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
-          const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
-          const isSelected = highlightQubits.includes(edge.from) && highlightQubits.includes(edge.to)
-          return (
-            <line
-              key={i}
-              x1={fromQubit.x}
-              y1={fromQubit.y}
-              x2={toQubit.x}
-              y2={toQubit.y}
-              stroke={isSelected ? colors.accent : stroke}
-              strokeWidth={isSelected ? 2.5 : 1}
-              opacity={isSelected ? 1 : 0.2}
+    <svg width="280" height="155" viewBox="0 0 310 170">
+      {TOPOLOGY_EDGES.map((edge, i) => {
+        const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
+        const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
+        const isSelected = highlightQubits.includes(edge.from) && highlightQubits.includes(edge.to)
+        return (
+          <line
+            key={i}
+            x1={fromQubit.x}
+            y1={fromQubit.y}
+            x2={toQubit.x}
+            y2={toQubit.y}
+            stroke={isSelected ? colors.accent : stroke}
+            strokeWidth={isSelected ? 2 : 1}
+            opacity={isSelected ? 1 : 0.2}
+          />
+        )
+      })}
+      {TOPOLOGY_QUBITS.map((qubit) => {
+        const isSelected = highlightQubits.includes(qubit.id)
+        const logicalIdx = highlightQubits.indexOf(qubit.id)
+        return (
+          <g key={qubit.id}>
+            <circle
+              cx={qubit.x}
+              cy={qubit.y}
+              r={isSelected ? 16 : 14}
+              fill={isSelected ? colors.accent : (isDarkMode ? "#555" : "#aaa")}
+              opacity={isSelected ? 1 : 0.4}
             />
-          )
-        })}
-        {/* Draw nodes on top */}
-        {TOPOLOGY_QUBITS.map((qubit) => {
-          const isSelected = highlightQubits.includes(qubit.id)
-          const logicalIdx = highlightQubits.indexOf(qubit.id)
-          return (
-            <g key={qubit.id}>
-              <circle
-                cx={qubit.x}
-                cy={qubit.y}
-                r={isSelected ? 14 : 10}
-                fill={isSelected ? colors.accent : (isDarkMode ? "#555" : "#aaa")}
-                opacity={isSelected ? 1 : 0.3}
-              />
-              <text
-                x={qubit.x}
-                y={qubit.y + 4}
-                textAnchor="middle"
-                fill={isSelected ? "#000" : (isDarkMode ? "#fff" : "#000")}
-                fontSize="10"
-                fontWeight={isSelected ? "600" : "normal"}
-                fontFamily="monospace"
-                opacity={isSelected ? 1 : 0.6}
-              >
-                {isSelected ? `q${logicalIdx}` : qubit.id}
-              </text>
-            </g>
-          )
-        })}
-      </svg>
-      <p className="text-xs opacity-60 mt-1 font-mono">{label}</p>
-    </div>
+            <text
+              x={qubit.x}
+              y={qubit.y + 4}
+              textAnchor="middle"
+              fill={isSelected ? "#000" : (isDarkMode ? "#fff" : "#000")}
+              fontSize="12"
+              fontWeight={isSelected ? "600" : "normal"}
+              fontFamily="monospace"
+              opacity={isSelected ? 1 : 0.6}
+            >
+              {isSelected ? `q${logicalIdx}` : qubit.id}
+            </text>
+          </g>
+        )
+      })}
+    </svg>
   )
 }
 
@@ -468,99 +504,45 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
     { type: "cnot", qubits: [1, 2] },
   ]
 
-  const randomHighlight = [0, 3, 10]
-  const smartHighlight = [5, 8, 9]
-
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
+    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
       <div className="p-6">
-        {/* Original logical circuit */}
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-wider opacity-60 mb-3">Logical circuit (input)</p>
-          <QuantumCircuit
-            numQubits={3}
-            gates={originalGates}
-            labels={["q₀", "q₁", "q₂"]}
-            width={240}
-            isDarkMode={isDarkMode}
-          />
-          <p className="text-xs opacity-50 mt-2">
-            The highlighted CNOT requires qubits q₀ and q₂ to be adjacent
-          </p>
+        <div className="mb-6">
+          <p className="text-xs uppercase tracking-wider opacity-50 mb-3">Input circuit</p>
+          <QuantumCircuit numQubits={3} gates={originalGates} labels={["q₀", "q₁", "q₂"]} width={220} isDarkMode={isDarkMode} />
         </div>
 
-        {/* Side-by-side comparison */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Random placement */}
-          <div className={`p-4 rounded-lg ${isDarkMode ? "bg-white/[0.03]" : "bg-black/[0.03]"}`}>
-            <p className="text-sm font-medium mb-4" style={{ color: colors.bad }}>Random placement</p>
-            
-            <PlacementTopology 
-              highlightQubits={randomHighlight}
-              isDarkMode={isDarkMode}
-              label="q0→Q0, q1→Q3, q2→Q10"
-            />
-            
-            <p className="text-xs uppercase tracking-wider opacity-60 mt-4 mb-2">After routing</p>
-            <QuantumCircuit
-              numQubits={4}
-              gates={randomRoutedGates}
-              labels={["q₀", "q₁", "q₂", ""]}
-              width={320}
-              isDarkMode={isDarkMode}
-            />
-            
-            <div className="mt-4 pt-3 border-t border-current/10">
-              <p className="font-mono text-sm">
-                <span className="opacity-60">SWAPs: </span>
-                <span style={{ color: colors.bad }}>4</span>
-              </p>
-              <p className="font-mono text-sm">
-                <span className="opacity-60">Fidelity: </span>
-                <span style={{ color: colors.bad }}>~52%</span>
-              </p>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.bad }} />
+              <span className="text-sm" style={{ color: colors.bad }}>Random</span>
+            </div>
+            <PlacementTopology highlightQubits={[0, 3, 10]} isDarkMode={isDarkMode} />
+            <div className="mt-3 overflow-x-auto">
+              <QuantumCircuit numQubits={4} gates={randomRoutedGates} labels={["q₀", "q₁", "q₂", ""]} width={300} isDarkMode={isDarkMode} />
+            </div>
+            <div className="mt-3 flex gap-6 text-sm font-mono">
+              <span><span className="opacity-50">SWAPs:</span> <span style={{ color: colors.bad }}>4</span></span>
+              <span><span className="opacity-50">Fidelity:</span> <span style={{ color: colors.bad }}>~52%</span></span>
             </div>
           </div>
 
-          {/* Noise-aware placement */}
-          <div className={`p-4 rounded-lg ${isDarkMode ? "bg-white/[0.03]" : "bg-black/[0.03]"}`}>
-            <p className="text-sm font-medium mb-4" style={{ color: colors.good }}>Noise-aware placement</p>
-            
-            <PlacementTopology 
-              highlightQubits={smartHighlight}
-              isDarkMode={isDarkMode}
-              label="q0→Q5, q1→Q8, q2→Q9"
-            />
-            
-            <p className="text-xs uppercase tracking-wider opacity-60 mt-4 mb-2">After routing</p>
-            <QuantumCircuit
-              numQubits={3}
-              gates={smartRoutedGates}
-              labels={["q₀", "q₁", "q₂"]}
-              width={280}
-              isDarkMode={isDarkMode}
-            />
-            
-            <div className="mt-4 pt-3 border-t border-current/10">
-              <p className="font-mono text-sm">
-                <span className="opacity-60">SWAPs: </span>
-                <span style={{ color: colors.good }}>1</span>
-              </p>
-              <p className="font-mono text-sm">
-                <span className="opacity-60">Fidelity: </span>
-                <span style={{ color: colors.good }}>~89%</span>
-              </p>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.good }} />
+              <span className="text-sm" style={{ color: colors.good }}>Noise-aware</span>
+            </div>
+            <PlacementTopology highlightQubits={[5, 8, 9]} isDarkMode={isDarkMode} />
+            <div className="mt-3">
+              <QuantumCircuit numQubits={3} gates={smartRoutedGates} labels={["q₀", "q₁", "q₂"]} width={260} isDarkMode={isDarkMode} />
+            </div>
+            <div className="mt-3 flex gap-6 text-sm font-mono">
+              <span><span className="opacity-50">SWAPs:</span> <span style={{ color: colors.good }}>1</span></span>
+              <span><span className="opacity-50">Fidelity:</span> <span style={{ color: colors.good }}>~89%</span></span>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Summary */}
-      <div className={`px-6 py-4 border-t ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-        <p className="text-sm opacity-70">
-          Choosing qubits that are already well-connected reduces the number of SWAPs needed, 
-          improving overall circuit fidelity by <span className="font-mono" style={{ color: colors.good }}>+37%</span>.
-        </p>
       </div>
     </div>
   )
@@ -605,15 +587,14 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
   }
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
+    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
       <div className="p-6">
-        <p className="text-sm opacity-60 mb-6">
-          Moving state from Q0 to Q5. Which path?
+        <p className="text-sm opacity-60 mb-5">
+          Moving state from <span className="font-mono" style={{ color: colors.accent }}>Q0</span> to <span className="font-mono" style={{ color: colors.accent }}>Q5</span>
         </p>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-6">
           <svg width="280" height="120" viewBox="0 0 280 120" className="flex-shrink-0">
-            {/* Draw edges first (behind nodes) */}
             {miniEdges.map((edge, i) => {
               const from = miniQubits.find(q => q.id === edge.from)!
               const to = miniQubits.find(q => q.id === edge.to)!
@@ -626,39 +607,34 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                   x2={to.x}
                   y2={to.y}
                   stroke={onPath ? colors.accent : stroke}
-                  strokeWidth={onPath ? 2.5 : 1.5}
-                  opacity={onPath ? 1 : 0.3}
+                  strokeWidth={onPath ? 2 : 1}
+                  opacity={onPath ? 1 : 0.25}
                 />
               )
             })}
-            {/* Draw edge labels */}
             {miniEdges.map((edge, i) => {
               const from = miniQubits.find(q => q.id === edge.from)!
               const to = miniQubits.find(q => q.id === edge.to)!
               const onPath = isOnPath(edge.from, edge.to)
               return (
                 <text
-                  key={`edge-label-${i}`}
+                  key={`label-${i}`}
                   x={(from.x + to.x) / 2}
                   y={(from.y + to.y) / 2 - 8}
                   textAnchor="middle"
                   fill={isDarkMode ? "#fff" : "#000"}
                   fontSize="10"
                   fontFamily="monospace"
-                  opacity={onPath ? 0.9 : 0.5}
+                  opacity={onPath ? 0.8 : 0.4}
                 >
                   {(edge.quality * 100).toFixed(0)}%
                 </text>
               )
             })}
-            {/* Draw nodes last (on top of edges) */}
             {miniQubits.map((q) => {
               const isEndpoint = q.id === 0 || q.id === 5
               const onPath = currentPath.flat().includes(q.id)
-              // Find the edge quality associated with this node if on path
-              const nodeEdge = miniEdges.find(e => 
-                (e.from === q.id || e.to === q.id) && isOnPath(e.from, e.to)
-              )
+              const nodeEdge = miniEdges.find(e => (e.from === q.id || e.to === q.id) && isOnPath(e.from, e.to))
               const nodeQuality = nodeEdge?.quality ?? 0.9
               const nodeColor = isEndpoint ? colors.accent : getQualityColor(nodeQuality)
               return (
@@ -666,15 +642,15 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                   <circle
                     cx={q.x}
                     cy={q.y}
-                    r={isEndpoint ? 14 : 12}
+                    r={isEndpoint ? 13 : 11}
                     fill={onPath || isEndpoint ? nodeColor : (isDarkMode ? "#444" : "#999")}
-                    opacity={isEndpoint || onPath ? 1 : 0.4}
+                    opacity={isEndpoint || onPath ? 1 : 0.35}
                   />
                   <text 
                     x={q.x} 
                     y={q.y + 4} 
                     textAnchor="middle" 
-                    fill={isEndpoint || onPath ? "#fff" : (isDarkMode ? "#fff" : "#000")} 
+                    fill="#fff"
                     fontSize="10" 
                     fontWeight="500"
                     fontFamily="monospace"
@@ -686,47 +662,40 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
             })}
           </svg>
 
-          <div className="flex-1 space-y-3">
+          <div className="flex-1 space-y-2">
             <button
               onClick={() => setSelectedPath("short")}
-              className={`w-full text-left p-3 rounded transition-all ${
-                selectedPath === "short"
-                  ? (isDarkMode ? "bg-white/10" : "bg-black/10")
-                  : "opacity-50 hover:opacity-80"
+              className={`w-full text-left px-3 py-2.5 rounded-md transition-all ${
+                selectedPath === "short" ? (isDarkMode ? "bg-white/10" : "bg-black/10") : "opacity-50 hover:opacity-80"
               }`}
             >
-              <div className="text-sm font-medium">Short path</div>
-              <div className="text-xs opacity-60 font-mono mt-0.5">0 → 3 → 5 · 2 SWAPs · 88%, 85%</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Short path</span>
+                <span className="text-xs font-mono opacity-60">0→3→5</span>
+              </div>
+              <div className="text-xs opacity-50 mt-0.5">2 SWAPs · fidelities: 88%, 85%</div>
             </button>
 
             <button
               onClick={() => setSelectedPath("quality")}
-              className={`w-full text-left p-3 rounded transition-all ${
-                selectedPath === "quality"
-                  ? (isDarkMode ? "bg-white/10" : "bg-black/10")
-                  : "opacity-50 hover:opacity-80"
+              className={`w-full text-left px-3 py-2.5 rounded-md transition-all ${
+                selectedPath === "quality" ? (isDarkMode ? "bg-white/10" : "bg-black/10") : "opacity-50 hover:opacity-80"
               }`}
             >
-              <div className="text-sm font-medium">Quality path</div>
-              <div className="text-xs opacity-60 font-mono mt-0.5">0 → 1 → 2 → 4 → 5 · 4 SWAPs · 97%, 99%, 98%, 96%</div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Quality path</span>
+                <span className="text-xs font-mono opacity-60">0→1→2→4→5</span>
+              </div>
+              <div className="text-xs opacity-50 mt-0.5">4 SWAPs · fidelities: 97%, 99%, 98%, 96%</div>
             </button>
-          </div>
-        </div>
-      </div>
 
-      <div className={`px-6 py-4 border-t ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-        <div className="flex justify-between items-center text-sm">
-          <div>
-            <span className="opacity-60">Fidelity: </span>
-            <span className="font-mono text-lg" style={{ color: colors.accent }}>
-              {((selectedPath === "short" ? shortPathFidelity : qualityPathFidelity) * 100).toFixed(0)}%
-            </span>
+            <div className="pt-3 flex items-center justify-between">
+              <span className="text-sm opacity-50">Total fidelity</span>
+              <span className="text-xl font-mono" style={{ color: selectedPath === "short" ? colors.bad : colors.good }}>
+                {((selectedPath === "short" ? shortPathFidelity : qualityPathFidelity) * 100).toFixed(0)}%
+              </span>
+            </div>
           </div>
-          {selectedPath === "short" && (
-            <span className="opacity-60">
-              Quality path is {((qualityPathFidelity - shortPathFidelity) * 100).toFixed(0)}% better
-            </span>
-          )}
         </div>
       </div>
     </div>
@@ -742,10 +711,11 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
 
   const totalFidelity = Math.pow(gateFidelity, gateCount)
   const improvedFidelity = Math.pow(gateFidelity + 0.005, gateCount)
+  const improvement = improvedFidelity - totalFidelity
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
-      <div className="p-6 space-y-6">
+    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+      <div className="p-6 space-y-5">
         <div className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-2">
@@ -789,20 +759,20 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
           </div>
         </div>
 
-        <div className="flex gap-6">
-          <div className="flex-1">
-            <p className="text-xs uppercase tracking-wider opacity-40 mb-1">Circuit fidelity</p>
+        <div className="flex items-end justify-between pt-2">
+          <div>
+            <p className="text-xs opacity-50 mb-1">Circuit fidelity</p>
             <p className="text-2xl font-mono">{(totalFidelity * 100).toFixed(1)}%</p>
           </div>
-          <div className="flex-1">
-            <p className="text-xs uppercase tracking-wider opacity-40 mb-1">With +0.5% per gate</p>
-            <p className="text-2xl font-mono" style={{ color: colors.accent }}>{(improvedFidelity * 100).toFixed(1)}%</p>
+          <div className="text-right">
+            <p className="text-xs opacity-50 mb-1">With +0.5% per gate</p>
+            <p className="text-2xl font-mono" style={{ color: colors.good }}>{(improvedFidelity * 100).toFixed(1)}%</p>
           </div>
         </div>
-      </div>
 
-      <div className={`px-6 py-4 text-sm opacity-60 border-t ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-        Small per-gate improvements compound to +{((improvedFidelity - totalFidelity) * 100).toFixed(0)}% total fidelity
+        <p className="text-sm opacity-50 pt-1">
+          Small improvements compound to <span className="font-mono" style={{ color: colors.good }}>+{(improvement * 100).toFixed(0)}%</span> total
+        </p>
       </div>
     </div>
   )
@@ -813,9 +783,10 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
 // ============================================
 export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
   const [step, setStep] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(true)
 
   const steps = [
-    { label: "Initial", fidelity: 1.0 },
+    { label: "Start", fidelity: 1.0 },
     { label: "CNOT", fidelity: 0.99 },
     { label: "CNOT", fidelity: 0.98 },
     { label: "SWAP", fidelity: 0.94 },
@@ -825,49 +796,51 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
 
   const currentFidelity = steps[step].fidelity
   const stroke = isDarkMode ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.8)"
-  const strokeDim = isDarkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"
+  const strokeDim = isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"
 
   useEffect(() => {
+    if (!isPlaying) return
     const timer = setInterval(() => {
       setStep(s => (s + 1) % steps.length)
     }, 1500)
     return () => clearInterval(timer)
-  }, [steps.length])
+  }, [steps.length, isPlaying])
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
+    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
       <div className="p-6">
-        {/* Circuit */}
-        <svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="xMidYMid meet">
-          <line x1="20" y1="30" x2="380" y2="30" stroke={strokeDim} strokeWidth="1" />
-          <text x="8" y="34" fill={stroke} fontSize="11" fontFamily="monospace">|ψ⟩</text>
+        <svg width="100%" height="60" viewBox="0 0 480 60" preserveAspectRatio="xMidYMid meet">
+          <line x1="50" y1="30" x2="460" y2="30" stroke={strokeDim} strokeWidth="1" />
+          <text x="20" y="34" fill={stroke} fontSize="11" fontFamily="monospace">|ψ⟩</text>
           
           {steps.slice(1).map((s, i) => {
-            const x = 70 + i * 60
+            const x = 100 + i * 70
             const isActive = i < step
             const isCurrent = i === step - 1
+            const boxFill = isCurrent 
+              ? colors.accent 
+              : (isDarkMode ? "#1a1a1a" : "#f0f0f0")
             return (
               <g key={i}>
                 <rect
-                  x={x - 22}
+                  x={x - 27}
                   y={10}
-                  width="44"
+                  width="54"
                   height="40"
-                  rx="3"
-                  fill={isCurrent ? colors.accent : (isDarkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)")}
-                  stroke={isActive ? (isDarkMode ? "#fff" : "#000") : strokeDim}
-                  strokeWidth={isCurrent ? 2 : 1}
-                  opacity={isActive ? (isCurrent ? 1 : 0.7) : 0.4}
+                  rx="4"
+                  fill={boxFill}
+                  stroke={isActive ? (isDarkMode ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)") : strokeDim}
+                  strokeWidth="1"
                 />
                 <text
                   x={x}
-                  y={34}
+                  y={35}
                   textAnchor="middle"
                   fill={isCurrent ? "#000" : (isDarkMode ? "#fff" : "#000")}
-                  fontSize="10"
+                  fontSize="11"
                   fontWeight={isCurrent ? "600" : "normal"}
                   fontFamily="monospace"
-                  opacity={isActive ? 1 : 0.6}
+                  opacity={isActive ? 1 : 0.5}
                 >
                   {s.label}
                 </text>
@@ -876,24 +849,43 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
           })}
         </svg>
 
-        {/* Fidelity display */}
-        <div className="flex items-end justify-between mt-6">
+        <div className="flex items-end justify-between mt-5">
           <div>
-            <p className="text-xs uppercase tracking-wider opacity-50 mb-1">Fidelity</p>
-            <p className="text-3xl font-mono" style={{ color: currentFidelity < 0.95 ? colors.bad : colors.good }}>
+            <p className="text-xs opacity-50 mb-1">Fidelity</p>
+            <p className="text-2xl font-mono" style={{ color: currentFidelity < 0.95 ? colors.bad : colors.good }}>
               {(currentFidelity * 100).toFixed(0)}%
             </p>
           </div>
-          <div className="flex gap-1.5">
-            {steps.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setStep(i)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  i === step ? "bg-current" : "bg-current/30"
-                }`}
-              />
-            ))}
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className={`p-1 rounded transition-all opacity-50 hover:opacity-100`}
+            >
+              {isPlaying ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </button>
+            
+            <div className="flex gap-0.5">
+              {steps.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setStep(i); setIsPlaying(false); }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    i === step ? "opacity-100" : "opacity-30 hover:opacity-60"
+                  }`}
+                  style={{ backgroundColor: i <= step ? (currentFidelity < 0.95 ? colors.bad : colors.good) : (isDarkMode ? "#fff" : "#000") }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
