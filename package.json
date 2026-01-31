@@ -10,12 +10,15 @@
   },
   "dependencies": {
     "@paper-design/shaders-react": "^0.0.46",
+    "katex": "^0.16.28",
     "next": "15.5.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "shiki": "^3.22.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@types/katex": "^0.16.8",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

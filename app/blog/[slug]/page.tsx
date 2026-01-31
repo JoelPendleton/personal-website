@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
+import "katex/dist/katex.min.css"
 import {
   SwapGateVisualizer,
   ConnectivityGraph,
@@ -11,6 +12,7 @@ import {
   CostFunctionComparison,
   ErrorAccumulation,
 } from "./circuit-matching-components"
+import { CodeBlock, InlineMath } from "../components"
 
 // Content component for the circuit matching post (needs isDarkMode)
 function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
@@ -49,7 +51,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         <strong>2. Not All Qubits Are Created Equal</strong>: This is where things get really interesting. On a real quantum processor:
       </p>
       <ul>
-        <li>Qubit 3 might maintain coherence (T₂) for 100 microseconds while Qubit 7 only lasts 40 microseconds</li>
+        <li>Qubit 3 might maintain coherence (<InlineMath>T_2</InlineMath>) for 100 microseconds while Qubit 7 only lasts 40 microseconds</li>
         <li>The two-qubit gate between qubits (2,3) might have 99% fidelity while the gate between (5,6) has only 95%</li>
         <li>Readout accuracy varies from 92% to 99% across different qubits</li>
       </ul>
@@ -59,7 +61,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
       </div>
 
       <p>
-        <strong>3. The Combinatorial Explosion</strong>: For a 10-qubit algorithm on a 127-qubit device, there are approximately 127!/(127-10)! ≈ 10²¹ possible mappings. Even with clever heuristics, finding the optimal placement is computationally intractable.
+        <strong>3. The Combinatorial Explosion</strong>: For a 10-qubit algorithm on a 127-qubit device, there are approximately <InlineMath>{String.raw`\frac{127!}{(127-10)!} \approx 10^{21}`}</InlineMath> possible mappings. Even with clever heuristics, finding the optimal placement is computationally intractable.
       </p>
 
       <h2>The State of the Art: SABRE and Its Limitations</h2>
@@ -91,16 +93,20 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
       <p>
         The key insight is to replace hop count with a noise-aware distance metric:
       </p>
-      <pre className={`p-4 rounded text-sm overflow-x-auto ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
-{`SABRE:  distance(q1, q2) = number of edges in shortest path
-        (Implicit goal: minimize total SWAPs)
+      <CodeBlock
+        isDarkMode={isDarkMode}
+        language="python"
+        code={`# SABRE approach
+distance(q1, q2) = number_of_edges_in_shortest_path
+# Implicit goal: minimize total SWAPs
 
-NACRE:  edge_weight(q1, q2) = -log(fidelity[q1, q2])
-        distance(q1, q2) = sum of edge weights along optimal path
-        (Explicit goal: maximize circuit fidelity)`}
-      </pre>
+# NACRE approach  
+edge_weight(q1, q2) = -log(fidelity[q1, q2])
+distance(q1, q2) = sum_of_edge_weights_along_optimal_path
+# Explicit goal: maximize circuit fidelity`}
+      />
       <p>
-        Using the negative logarithm of fidelity is mathematically elegant: it converts multiplicative fidelity (F_total = F₁ × F₂ × F₃) into additive distance (d_total = d₁ + d₂ + d₃), allowing us to use standard shortest-path algorithms like Dijkstra&apos;s. A path through three 99% fidelity gates (-log(0.99³) = 0.030) is now correctly ranked worse than a path through two 99.5% fidelity gates (-log(0.995²) = 0.010)—even though the latter has fewer hops.
+        Using the negative logarithm of fidelity is mathematically elegant: it converts multiplicative fidelity (<InlineMath>{String.raw`F_{\text{total}} = F_1 \times F_2 \times F_3`}</InlineMath>) into additive distance (<InlineMath>{String.raw`d_{\text{total}} = d_1 + d_2 + d_3`}</InlineMath>), allowing us to use standard shortest-path algorithms like Dijkstra&apos;s. A path through three 99% fidelity gates (<InlineMath>{String.raw`-\log(0.99^3) = 0.030`}</InlineMath>) is now correctly ranked worse than a path through two 99.5% fidelity gates (<InlineMath>{String.raw`-\log(0.995^2) = 0.010`}</InlineMath>)—even though the latter has fewer hops.
       </p>
 
       <div className="my-12">
@@ -135,7 +141,7 @@ NACRE:  edge_weight(q1, q2) = -log(fidelity[q1, q2])
             </tr>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Decoherence Cost</td>
-              <td className="p-3 opacity-75">How much the qubits will decay (T₁/T₂) during the time it takes to execute the SWAP</td>
+              <td className="p-3 opacity-75">How much the qubits will decay (<InlineMath>{String.raw`T_1/T_2`}</InlineMath>) during the time it takes to execute the SWAP</td>
             </tr>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Immediate Benefit</td>
@@ -166,7 +172,7 @@ NACRE:  edge_weight(q1, q2) = -log(fidelity[q1, q2])
       </p>
       <ol>
         <li><strong>Interaction-Weighted</strong>: Highly-interacting logical qubits get mapped to adjacent high-fidelity physical qubits. If qubits 0 and 1 in your algorithm interact 50 times, place them on the best-connected physical edge.</li>
-        <li><strong>Lifetime-Aware</strong>: Logical qubits that stay active longest get mapped to physical qubits with the highest T₂ coherence times.</li>
+        <li><strong>Lifetime-Aware</strong>: Logical qubits that stay active longest get mapped to physical qubits with the highest <InlineMath>T_2</InlineMath> coherence times.</li>
         <li><strong>Measurement-Aware</strong>: Qubits that will be measured get mapped to physical qubits with the highest readout fidelity.</li>
         <li><strong>Best-Region Selection</strong>: Find the highest-quality connected subgraph of the device and place your entire circuit there.</li>
       </ol>
@@ -200,7 +206,7 @@ NACRE:  edge_weight(q1, q2) = -log(fidelity[q1, q2])
               <td className="p-3">Targeted</td>
             </tr>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3">Considers T₂ Decay</td>
+              <td className="p-3">Considers <InlineMath>T_2</InlineMath> Decay</td>
               <td className="p-3 opacity-75">No</td>
               <td className="p-3">Yes</td>
             </tr>
@@ -218,7 +224,7 @@ NACRE:  edge_weight(q1, q2) = -log(fidelity[q1, q2])
         </table>
       </div>
       <p>
-        <strong>The fidelity improvement is the headline result.</strong> The 8.5% improvement in estimated fidelity might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between 0.99 and 0.995 per-gate fidelity is the difference between 37% and 61% total circuit fidelity—nearly doubling your success rate.
+        <strong>The fidelity improvement is the headline result.</strong> The 8.5% improvement in estimated fidelity might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity—nearly doubling your success rate.
       </p>
 
       <h2>When NACRE Excels</h2>
