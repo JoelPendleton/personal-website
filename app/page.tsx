@@ -191,6 +191,7 @@ export default function ResumePage() {
         {/* Footer Links Section - positioned at bottom */}
         <div className="mt-auto py-2 sm:pb-0 sm:pt-8">
           <div className="flex space-x-4 text-sm">
+            <a href="/blog" className="hover:opacity-70">Blog</a>
             <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>
             <a href="https://www.linkedin.com/in/joelpendleton" className="hover:opacity-70">LinkedIn</a>
             <a href="https://github.com/joelpendleton" className="hover:opacity-70">GitHub</a>

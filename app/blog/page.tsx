@@ -1,0 +1,144 @@
+"use client"
+
+import { Dithering } from "@paper-design/shaders-react"
+import { useState, useMemo } from "react"
+import Link from "next/link"
+
+// Available shapes from the Dithering component
+const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
+
+// Blog post data - in a real app, this would come from a CMS or MDX files
+const blogPosts = [
+  {
+    slug: "circuit-matching-problem",
+    title: "The Circuit Matching Problem: Why Your Quantum Computer Needs a Noise-Aware GPS",
+    date: "2026-01-30",
+    excerpt: "The quantum computing industry has a hidden infrastructure problem. We explore the qubit routing challenge and introduce NACRE, a noise-aware routing engine that optimizes for fidelity instead of SWAP count.",
+  },
+  {
+    slug: "building-quantum-computers-on-silicon",
+    title: "Building Quantum Computers on Silicon",
+    date: "2025-12-15",
+    excerpt: "An overview of our approach at Conductor Quantum to building scalable quantum computers using silicon-based technology.",
+  },
+  {
+    slug: "lessons-from-yc-s24",
+    title: "Lessons from Y Combinator S24",
+    date: "2025-10-20",
+    excerpt: "Reflections on our experience going through Y Combinator's Summer 2024 batch and what we learned about building a deep tech startup.",
+  },
+  {
+    slug: "from-physics-to-founder",
+    title: "From Physics to Founder",
+    date: "2025-08-05",
+    excerpt: "The journey from studying physics at UCL and Oxford to co-founding quantum computing companies.",
+  },
+]
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  })
+}
+
+export default function BlogPage() {
+  const [isDarkMode, setIsDarkMode] = useState(true)
+  
+  // Randomly select a shape on each render
+  const randomShape = useMemo(() => {
+    return shapes[Math.floor(Math.random() * shapes.length)]
+  }, [])
+
+  return (
+    <div className="relative min-h-screen grid grid-cols-1 xl:grid-cols-[1fr_1fr]">
+      <div className={`p-4 sm:p-8 relative z-10 flex flex-col ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+        {/* Theme toggle button in top right of left panel */}
+        <div className="flex justify-end mb-2 sm:mb-0">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-full transition-colors ${
+              isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+            }`}
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? (
+              // Sun icon for light mode
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+              </svg>
+            ) : (
+              // Moon icon for dark mode
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Main content wrapper */}
+        <div className="flex-grow">
+          {/* Header */}
+          <div className="mb-8 sm:mb-12">
+            <div className="mb-6 sm:mb-8 pt-8 sm:pt-12">
+              <Link href="/" className="hover:opacity-70 transition-opacity">
+                <h2 className="text-xl sm:text-lg font-normal">Joel Pendleton</h2>
+              </Link>
+              <h3 className="text-xl sm:text-lg font-normal">Blog</h3>
+              <p className="text-sm opacity-75 mt-2">Thoughts on quantum computing, startups, and technology</p>
+            </div>
+          </div>
+
+          {/* Blog Posts List */}
+          <div className="mb-12 space-y-8">
+            {blogPosts.map((post) => (
+              <article key={post.slug} className="group">
+                <Link href={`/blog/${post.slug}`} className="block">
+                  <div className="mb-1">
+                    <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-medium mb-2 group-hover:opacity-70 transition-opacity">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm opacity-75 leading-relaxed max-w-xl">
+                    {post.excerpt}
+                  </p>
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer Links Section - positioned at bottom */}
+        <div className="mt-auto py-2 sm:pb-0 sm:pt-8">
+          <div className="flex space-x-4 text-sm">
+            <Link href="/" className="hover:opacity-70">Home</Link>
+            <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>
+            <a href="https://www.linkedin.com/in/joelpendleton" className="hover:opacity-70">LinkedIn</a>
+            <a href="https://github.com/joelpendleton" className="hover:opacity-70">GitHub</a>
+            <a href="mailto:contact@joelpendleton.com" className="hover:opacity-70">Email</a>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative min-h-32 xl:min-h-screen">
+        <Dithering
+          style={{ height: "100%", width: "100%" }}
+          colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 100%)"}
+          colorFront="hsl(220, 100%, 70%)"
+          shape={randomShape}
+          type="4x4"
+          pxSize={3}
+          offsetX={0}
+          offsetY={0}
+          scale={0.8}
+          rotation={0}
+          speed={0.1}
+        />
+      </div>
+    </div>
+  )
+}

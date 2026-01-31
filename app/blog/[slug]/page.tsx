@@ -1,0 +1,500 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { useParams } from "next/navigation"
+import {
+  SwapGateVisualizer,
+  ConnectivityGraph,
+  PlacementComparison,
+  FidelityCalculator,
+  CostFunctionComparison,
+  ErrorAccumulation,
+} from "./circuit-matching-components"
+
+// Content component for the circuit matching post (needs isDarkMode)
+function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
+  return (
+    <>
+      <h2>The Hidden Infrastructure Problem</h2>
+      <p>
+        Think about what happens when you click &quot;Buy Now&quot; on a website. Your browser sends a request to a web server, which talks to a payment processor, which communicates with your bank, which approves the transaction, and confirmation ripples back through the entire chain—all in under two seconds. This seemingly simple action relies on decades of infrastructure development: compilers that translate high-level code to machine instructions, operating systems that manage resources, and networking protocols that route data across continents.
+      </p>
+      <p>
+        Now here&apos;s an uncomfortable truth: <strong>none of this infrastructure exists for quantum computers</strong>.
+      </p>
+      <p>
+        The quantum computing industry loves to announce that &quot;useful quantum computing is X years away,&quot; but rarely discusses the enormous software stack that classical computers take for granted. Consider what happens when you run a program on your laptop. Your Python code compiles to bytecode, which gets translated to assembly, which becomes machine code, which then—and this is the part we rarely think about—must be <em>routed</em> through billions of transistors. Which transistors execute which operations? How do signals flow between them? These problems were solved for classical computers long ago.
+      </p>
+      <p>
+        For quantum computers? We&apos;re still figuring it out.
+      </p>
+
+      <h2>The Qubit Routing Problem</h2>
+      <p>
+        Here&apos;s the fundamental challenge. Suppose you&apos;ve written a quantum algorithm that requires 10 qubits to run a Grover&apos;s search. You submit it to a quantum computer with, say, 127 physical qubits. The question is deceptively simple: <strong>which 10 physical qubits should run your algorithm?</strong>
+      </p>
+      <p>
+        This is hard for three reasons:
+      </p>
+      <p>
+        <strong>1. Limited Connectivity</strong>: Unlike classical bits that can interact with any other bit through software routing, physical qubits can only directly interact with their neighbors. On IBM&apos;s superconducting quantum processors, each qubit typically connects to only 2-4 other qubits. If your algorithm needs qubits 0 and 15 to interact but they&apos;re not neighbors, you must &quot;teleport&quot; the quantum information through intermediate qubits using SWAP operations—and each SWAP introduces errors.
+      </p>
+
+      <div className="my-12">
+        <SwapGateVisualizer isDarkMode={isDarkMode} />
+      </div>
+
+      <p>
+        <strong>2. Not All Qubits Are Created Equal</strong>: This is where things get really interesting. On a real quantum processor:
+      </p>
+      <ul>
+        <li>Qubit 3 might maintain coherence (T₂) for 100 microseconds while Qubit 7 only lasts 40 microseconds</li>
+        <li>The two-qubit gate between qubits (2,3) might have 99% fidelity while the gate between (5,6) has only 95%</li>
+        <li>Readout accuracy varies from 92% to 99% across different qubits</li>
+      </ul>
+
+      <div className="my-12">
+        <ConnectivityGraph isDarkMode={isDarkMode} />
+      </div>
+
+      <p>
+        <strong>3. The Combinatorial Explosion</strong>: For a 10-qubit algorithm on a 127-qubit device, there are approximately 127!/(127-10)! ≈ 10²¹ possible mappings. Even with clever heuristics, finding the optimal placement is computationally intractable.
+      </p>
+
+      <h2>The State of the Art: SABRE and Its Limitations</h2>
+      <p>
+        The current industry standard is an algorithm called SABRE (SWAP-based BidiREctional heuristic search), developed by Li, Ding, and Xie in 2019. SABRE treats the routing problem as a graph traversal problem: find the shortest path (fewest SWAPs) to execute all the two-qubit gates in your circuit.
+      </p>
+      <p>
+        SABRE works reasonably well, and it&apos;s what Qiskit uses under the hood. But it has a fundamental blind spot: <strong>it optimizes for the wrong objective</strong>.
+      </p>
+      <p>
+        When SABRE minimizes SWAP count, it&apos;s treating SWAPs as the enemy. But SWAPs aren&apos;t inherently bad—<em>errors</em> are bad. And here&apos;s the key insight: <strong>a single SWAP through a noisy edge can be worse than three SWAPs through pristine edges</strong>.
+      </p>
+
+      <div className="my-12">
+        <CostFunctionComparison isDarkMode={isDarkMode} />
+      </div>
+
+      <p>
+        By treating all qubits and edges as equal, SABRE is like a GPS that minimizes distance while ignoring that some roads are unpaved, some bridges are structurally unsound, and some highways have 10-car pileups. In the NISQ (Noisy Intermediate-Scale Quantum) era, where noise dominates everything, minimizing hops while ignoring noise is solving the wrong problem entirely.
+      </p>
+
+      <h2>NACRE: Optimizing for What Actually Matters</h2>
+      <p>
+        At Conductor, we built NACRE (Noise-Aware Circuit Routing Engine) to optimize for the metric that actually determines whether your quantum computation succeeds: <strong>fidelity</strong>.
+      </p>
+      <p>
+        The goal isn&apos;t to minimize SWAPs—it&apos;s to maximize the probability that your quantum state survives the computation intact. Sometimes that means fewer SWAPs. Sometimes it means <em>more</em> SWAPs, if those SWAPs traverse higher-quality hardware. NACRE makes this tradeoff intelligently.
+      </p>
+      <p>
+        The key insight is to replace hop count with a noise-aware distance metric:
+      </p>
+      <pre className={`p-4 rounded text-sm overflow-x-auto ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+{`SABRE:  distance(q1, q2) = number of edges in shortest path
+        (Implicit goal: minimize total SWAPs)
+
+NACRE:  edge_weight(q1, q2) = -log(fidelity[q1, q2])
+        distance(q1, q2) = sum of edge weights along optimal path
+        (Explicit goal: maximize circuit fidelity)`}
+      </pre>
+      <p>
+        Using the negative logarithm of fidelity is mathematically elegant: it converts multiplicative fidelity (F_total = F₁ × F₂ × F₃) into additive distance (d_total = d₁ + d₂ + d₃), allowing us to use standard shortest-path algorithms like Dijkstra&apos;s. A path through three 99% fidelity gates (-log(0.99³) = 0.030) is now correctly ranked worse than a path through two 99.5% fidelity gates (-log(0.995²) = 0.010)—even though the latter has fewer hops.
+      </p>
+
+      <div className="my-12">
+        <FidelityCalculator isDarkMode={isDarkMode} />
+      </div>
+
+      <h2>Why Fidelity Compounds</h2>
+      <p>
+        This reframing changes everything. NACRE doesn&apos;t ask &quot;how do I minimize SWAPs?&quot; It asks &quot;how do I get this quantum state to the finish line with the highest probability of being correct?&quot;
+      </p>
+
+      <div className="my-12">
+        <ErrorAccumulation isDarkMode={isDarkMode} />
+      </div>
+
+      <h3>The Six-Component Cost Function</h3>
+      <p>
+        When NACRE must decide which SWAP to insert, it evaluates candidates using six factors—all oriented toward maximizing fidelity:
+      </p>
+      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
+              <th className="text-left p-3 font-medium">Component</th>
+              <th className="text-left p-3 font-medium">What It Measures</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">SWAP Error Cost</td>
+              <td className="p-3 opacity-75">The error introduced by the SWAP gate itself, based on the two-qubit gate fidelity of that edge</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Decoherence Cost</td>
+              <td className="p-3 opacity-75">How much the qubits will decay (T₁/T₂) during the time it takes to execute the SWAP</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Immediate Benefit</td>
+              <td className="p-3 opacity-75">How much this SWAP reduces the fidelity-weighted distance for gates in the current &quot;front layer&quot;</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Lookahead Cost</td>
+              <td className="p-3 opacity-75">The fidelity impact on upcoming gates (configurable depth into the circuit)</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Decay Penalty</td>
+              <td className="p-3 opacity-75">A penalty for recently-swapped qubits to prevent getting stuck in loops</td>
+            </tr>
+            <tr>
+              <td className="p-3 font-medium">Crosstalk Penalty</td>
+              <td className="p-3 opacity-75">A penalty for SWAPs that would occur on qubits experiencing crosstalk from parallel operations</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Notice that SWAP count doesn&apos;t appear directly in this cost function. NACRE may insert an extra SWAP if doing so routes through higher-fidelity hardware. The algorithm trusts the physics: what matters is the final fidelity of the quantum state, not how many operations it took to get there.
+      </p>
+
+      <h3>Intelligent Initial Placement</h3>
+      <p>
+        SABRE starts with a random initial layout and hopes that bidirectional search finds something good. NACRE uses calibration data to generate intelligent starting layouts using four heuristic strategies:
+      </p>
+      <ol>
+        <li><strong>Interaction-Weighted</strong>: Highly-interacting logical qubits get mapped to adjacent high-fidelity physical qubits. If qubits 0 and 1 in your algorithm interact 50 times, place them on the best-connected physical edge.</li>
+        <li><strong>Lifetime-Aware</strong>: Logical qubits that stay active longest get mapped to physical qubits with the highest T₂ coherence times.</li>
+        <li><strong>Measurement-Aware</strong>: Qubits that will be measured get mapped to physical qubits with the highest readout fidelity.</li>
+        <li><strong>Best-Region Selection</strong>: Find the highest-quality connected subgraph of the device and place your entire circuit there.</li>
+      </ol>
+
+      <div className="my-12">
+        <PlacementComparison isDarkMode={isDarkMode} />
+      </div>
+
+      <h2>Performance: Fidelity Is the Win</h2>
+      <p>
+        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements:
+      </p>
+      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
+              <th className="text-left p-3 font-medium">Metric</th>
+              <th className="text-left p-3 font-medium">SABRE</th>
+              <th className="text-left p-3 font-medium">NACRE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Avg. Estimated Fidelity</td>
+              <td className="p-3">0.82</td>
+              <td className="p-3 text-green-400 font-medium">0.89 (+8.5%)</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3">Uses High-Quality Qubits</td>
+              <td className="p-3 opacity-75">Random</td>
+              <td className="p-3">Targeted</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3">Considers T₂ Decay</td>
+              <td className="p-3 opacity-75">No</td>
+              <td className="p-3">Yes</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3">Considers Gate Fidelity</td>
+              <td className="p-3 opacity-75">No</td>
+              <td className="p-3">Yes</td>
+            </tr>
+            <tr>
+              <td className="p-3">SWAP Count</td>
+              <td className="p-3 opacity-75">Minimized</td>
+              <td className="p-3">Fidelity-optimal</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        <strong>The fidelity improvement is the headline result.</strong> The 8.5% improvement in estimated fidelity might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between 0.99 and 0.995 per-gate fidelity is the difference between 37% and 61% total circuit fidelity—nearly doubling your success rate.
+      </p>
+
+      <h2>When NACRE Excels</h2>
+      <p>
+        NACRE provides the most benefit when:
+      </p>
+      <ul>
+        <li>The device has <strong>high variance in qubit quality</strong> (which all real NISQ devices do)</li>
+        <li>The device has <strong>sparse connectivity</strong> (superconducting architectures)</li>
+        <li>Circuits have <strong>many two-qubit gates</strong> (where routing overhead accumulates)</li>
+        <li><strong>Coherence times matter</strong> (deep circuits where qubits must survive many operations)</li>
+      </ul>
+
+      <h2>The Bigger Picture</h2>
+      <p>
+        NACRE represents a philosophical shift in quantum circuit compilation. Traditional routers inherited the classical computing mindset: operations are reliable, so minimize their count. But quantum operations are probabilistic. Every gate, every SWAP, every microsecond of waiting introduces some probability of error.
+      </p>
+      <p>
+        The right objective function isn&apos;t &quot;minimize operations&quot;—it&apos;s &quot;maximize the probability that this computation returns the correct answer.&quot; NACRE is the first production routing engine built around this principle.
+      </p>
+      <p>
+        As quantum processors scale from hundreds to thousands of qubits, and as error correction becomes practical, the routing problem will evolve. But the core principle—<strong>optimize for fidelity, not for proxy metrics</strong>—will remain essential. Today&apos;s NISQ devices are teaching us how to work with imperfect quantum systems, and that knowledge will carry forward into the fault-tolerant era.
+      </p>
+
+      <div className={`mt-12 p-6 rounded-lg ${isDarkMode ? "bg-blue-500/10 border border-blue-500/20" : "bg-blue-500/10 border border-blue-500/30"}`}>
+        <p className="font-medium mb-2">
+          NACRE is available now in the Conductor platform, automatically optimizing your quantum circuits for maximum fidelity on the specific hardware they&apos;ll run on.
+        </p>
+        <p className="text-sm opacity-75">
+          No configuration required—just submit your circuit and let the routing engine find the highest-fidelity path.
+        </p>
+      </div>
+
+      <p className="text-sm opacity-50 mt-8">
+        <em>Technical details: NACRE is implemented in Python with full Qiskit integration. Configuration options include presets for fidelity-optimized, balanced, and SWAP-efficient routing. The algorithm supports arbitrary device topologies (line, grid, heavy-hex, and custom) and accepts calibration data in standard formats or pulls live calibration from IBM Quantum backends.</em>
+      </p>
+    </>
+  )
+}
+
+// Blog post data - in a real app, this would come from a CMS or MDX files
+const blogPosts: Record<string, {
+  title: string
+  date: string
+  content: React.ReactNode | ((isDarkMode: boolean) => React.ReactNode)
+  hasInteractiveContent?: boolean
+}> = {
+  "circuit-matching-problem": {
+    title: "The Circuit Matching Problem: Why Your Quantum Computer Needs a Noise-Aware GPS",
+    date: "2026-01-30",
+    content: (isDarkMode: boolean) => <CircuitMatchingContent isDarkMode={isDarkMode} />,
+    hasInteractiveContent: true,
+  },
+  "building-quantum-computers-on-silicon": {
+    title: "Building Quantum Computers on Silicon",
+    date: "2025-12-15",
+    content: (
+      <>
+        <p>
+          At Conductor Quantum, we&apos;re taking a different approach to building quantum computers. Rather than pursuing exotic materials or complex fabrication processes, we&apos;re leveraging the incredible precision and scale of silicon manufacturing—the same technology that powers every smartphone and computer today.
+        </p>
+        <h2>Why Silicon?</h2>
+        <p>
+          The semiconductor industry has spent decades perfecting silicon fabrication. Modern fabs can create structures with atomic precision, and the infrastructure to manufacture billions of transistors already exists. By building our qubits in silicon, we can tap into this existing ecosystem rather than building everything from scratch.
+        </p>
+        <p>
+          Silicon spin qubits also have some inherent advantages. They&apos;re incredibly small—thousands of times smaller than superconducting qubits—which means we can fit more of them on a chip. And because they operate on the same principles as classical transistors, there&apos;s a natural path to integrating quantum and classical computing on the same substrate.
+        </p>
+        <h2>The Challenges</h2>
+        <p>
+          Of course, nothing worth doing is easy. Silicon qubits need to operate at extremely low temperatures—just a few millikelvin above absolute zero. We need precise control over individual electrons, and we need to connect thousands of qubits while maintaining their quantum properties.
+        </p>
+        <p>
+          These are hard problems, but they&apos;re engineering problems. And that&apos;s what gets us excited. We&apos;re not waiting for fundamental physics breakthroughs—we&apos;re applying what we know to build something that works.
+        </p>
+        <h2>What&apos;s Next</h2>
+        <p>
+          We&apos;re still in the early days, but the progress has been encouraging. Our team is focused on demonstrating the key building blocks and proving that our approach can scale. The quantum computing industry is moving fast, and we&apos;re working hard to make silicon a serious contender in this race.
+        </p>
+      </>
+    ),
+  },
+  "lessons-from-yc-s24": {
+    title: "Lessons from Y Combinator S24",
+    date: "2025-10-20",
+    content: (
+      <>
+        <p>
+          Going through Y Combinator&apos;s Summer 2024 batch was one of the most intense and valuable experiences of my career. Here are some of the key lessons that stuck with me.
+        </p>
+        <h2>Talk to Users (Even in Deep Tech)</h2>
+        <p>
+          The YC mantra of &quot;talk to users&quot; might seem less applicable to a company building quantum computers—after all, our end users are years away from interacting with our technology. But we learned that talking to potential customers, partners, and experts in adjacent fields was just as valuable. Understanding their problems shaped our roadmap in ways we didn&apos;t expect.
+        </p>
+        <h2>Speed Matters</h2>
+        <p>
+          In deep tech, it&apos;s easy to fall into the trap of perfectionism. We want to fully understand a problem before moving forward. YC pushed us to move faster, to make decisions with incomplete information, and to learn from mistakes rather than trying to avoid them entirely.
+        </p>
+        <p>
+          This doesn&apos;t mean being reckless with the physics—the laws of nature don&apos;t care about your timeline. But it does mean being ruthless about prioritization and not letting secondary concerns slow down the critical path.
+        </p>
+        <h2>Fundraising is a Means, Not an End</h2>
+        <p>
+          Demo Day was exciting, but the real measure of success is what happens after. The connections and credibility from YC opened doors, but we still had to walk through them and prove ourselves. Every conversation came back to: what have you built, and what&apos;s your plan?
+        </p>
+        <h2>The Batch is the Product</h2>
+        <p>
+          The other founders in our batch were incredible. Late nights, shared struggles, celebrating wins together—these relationships became as valuable as any advice from partners. Building a company is lonely, and having a cohort going through the same thing makes a real difference.
+        </p>
+      </>
+    ),
+  },
+  "from-physics-to-founder": {
+    title: "From Physics to Founder",
+    date: "2025-08-05",
+    content: (
+      <>
+        <p>
+          When I started studying physics at UCL, I didn&apos;t imagine I&apos;d end up co-founding companies. The path from physics student to startup founder wasn&apos;t planned—it emerged from a series of decisions that each seemed obvious at the time.
+        </p>
+        <h2>Falling in Love with Quantum</h2>
+        <p>
+          My first exposure to quantum computing came through internships at Quantum Motion. Seeing the gap between theoretical promise and practical implementation was eye-opening. The field was full of unsolved problems, and the solutions would require new ideas, not just incremental improvements.
+        </p>
+        <p>
+          After working at several quantum companies—C12, QuantrolOx, and others—I started to see patterns. Common challenges that everyone faced. Opportunities that weren&apos;t being pursued. And eventually, the conviction that we could do something about it.
+        </p>
+        <h2>The Decision to Start</h2>
+        <p>
+          Starting a company while pursuing a DPhil at Oxford wasn&apos;t the conventional path. But the opportunity felt right. We had a technical insight, a team that worked well together, and a window of time when the field was ripe for new approaches.
+        </p>
+        <p>
+          The transition from researcher to founder was harder than expected. Research rewards depth and completeness; startups reward speed and iteration. Learning to make decisions with incomplete information, to prioritize ruthlessly, to build rather than analyze—these were new skills.
+        </p>
+        <h2>What Physics Taught Me</h2>
+        <p>
+          Despite the differences, my physics background has been invaluable. The ability to model complex systems, to identify what&apos;s first-order important, to be comfortable with uncertainty—these translate directly to building a company in a technical field.
+        </p>
+        <p>
+          Most importantly, physics taught me that hard problems are solvable. Not by hoping or wishing, but by systematic effort and clear thinking. That mindset is what keeps us going when progress is slow and the challenges seem insurmountable.
+        </p>
+      </>
+    ),
+  },
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  })
+}
+
+export default function BlogPostPage() {
+  const params = useParams()
+  const slug = params.slug as string
+  const post = blogPosts[slug]
+  
+  const [isDarkMode, setIsDarkMode] = useState(true)
+
+  if (!post) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <h1 className="text-2xl mb-4">Post not found</h1>
+          <Link href="/blog" className="underline hover:opacity-70">
+            Back to blog
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={`min-h-screen ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 flex flex-col min-h-screen">
+        {/* Theme toggle button in top right */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-full transition-colors ${
+              isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+            }`}
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="5" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+              </svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Main content wrapper */}
+        <div className="flex-grow">
+          {/* Header */}
+          <div className="mb-12">
+            <Link href="/" className="hover:opacity-70 transition-opacity">
+              <h2 className="text-lg font-normal">Joel Pendleton</h2>
+            </Link>
+            <Link href="/blog" className="hover:opacity-70 transition-opacity">
+              <h3 className="text-lg font-normal">Blog</h3>
+            </Link>
+          </div>
+
+          {/* Blog Post Content */}
+          <article className="mb-16">
+            <header className="mb-10">
+              <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
+              <h1 className="text-2xl sm:text-3xl font-medium mt-2 leading-tight">
+                {post.title}
+              </h1>
+            </header>
+            
+            <div className={`prose prose-lg max-w-none ${isDarkMode ? "prose-invert" : ""}`}>
+              <style jsx>{`
+                div :global(p) {
+                  margin-bottom: 1.75rem;
+                  line-height: 1.8;
+                  opacity: 0.9;
+                }
+                div :global(h2) {
+                  font-size: 1.375rem;
+                  font-weight: 500;
+                  margin-top: 3rem;
+                  margin-bottom: 1.25rem;
+                }
+                div :global(h3) {
+                  font-size: 1.15rem;
+                  font-weight: 500;
+                  margin-top: 2.5rem;
+                  margin-bottom: 1rem;
+                }
+                div :global(ul), div :global(ol) {
+                  margin-bottom: 1.75rem;
+                  padding-left: 1.5rem;
+                }
+                div :global(li) {
+                  margin-bottom: 0.625rem;
+                  line-height: 1.8;
+                  opacity: 0.9;
+                }
+                div :global(pre) {
+                  margin-bottom: 1.75rem;
+                }
+                div :global(strong) {
+                  font-weight: 600;
+                }
+                div :global(em) {
+                  font-style: italic;
+                }
+              `}</style>
+              {typeof post.content === 'function' ? post.content(isDarkMode) : post.content}
+            </div>
+          </article>
+        </div>
+
+        {/* Footer Links Section */}
+        <div className="mt-auto pt-8 pb-4 border-t border-current/10">
+          <div className="flex flex-wrap gap-4 text-sm">
+            <Link href="/" className="hover:opacity-70">Home</Link>
+            <Link href="/blog" className="hover:opacity-70">Blog</Link>
+            <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>
+            <a href="https://www.linkedin.com/in/joelpendleton" className="hover:opacity-70">LinkedIn</a>
+            <a href="https://github.com/joelpendleton" className="hover:opacity-70">GitHub</a>
+            <a href="mailto:contact@joelpendleton.com" className="hover:opacity-70">Email</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
