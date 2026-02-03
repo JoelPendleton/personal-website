@@ -13,18 +13,26 @@ import { Button } from "@/components/ui/button"
 // Unified color palette matching the site style
 // ==============================================
 
-// Core semantic colors - consistent throughout
+// Import Tailwind colors directly for use in SVG elements (which require hex values)
+import twColors from "tailwindcss/colors"
+
+const tailwindColors = {
+  green: twColors.green[500],
+  red: twColors.red[500],
+  yellow: twColors.yellow[500],
+  amber: twColors.amber[500],
+  blue: twColors.blue[500],
+}
+
+// Core colors - using Tailwind 500 values
 const colors = {
-  // Blue accent - matches homepage exactly
-  accent: "hsl(220, 100%, 70%)",
-  // Quality spectrum (red → orange → yellow → green)
-  red: "hsl(0, 72%, 51%)",      // Bad/low fidelity
-  orange: "hsl(25, 95%, 53%)",  // Poor fidelity  
-  yellow: "hsl(45, 93%, 47%)",  // Medium fidelity
-  green: "hsl(142, 71%, 45%)",  // Good/high fidelity
-  // Aliases for semantic use
-  good: "hsl(142, 71%, 45%)",
-  bad: "hsl(0, 72%, 51%)",
+  accent: tailwindColors.blue,
+  red: tailwindColors.red,
+  amber: tailwindColors.amber,
+  yellow: tailwindColors.yellow,
+  green: tailwindColors.green,
+  good: tailwindColors.green,
+  bad: tailwindColors.red,
 }
 
 // Muted colors for dark/light mode (replacing transparency)
@@ -45,49 +53,35 @@ const getMutedColors = (isDarkMode: boolean) => ({
   edgeInactive: isDarkMode ? "#3a3a3a" : "#c4c4c4",
 })
 
-// Get quality color using a smooth gradient through red → orange → yellow → green
-// Maps quality (0.80-1.0) to the color spectrum
+// Get quality color using four distinct colors: red, amber, yellow, green
+// Maps quality (0.80-1.0) to discrete color stops
 function getQualityColor(quality: number): string {
   // Normalize to 0-1 range (0.80 = 0, 1.0 = 1)
   const t = Math.max(0, Math.min(1, (quality - 0.80) / 0.20))
   
-  // Piecewise linear interpolation through color stops
-  // 0.0-0.33: red → orange (hue 0 → 25)
-  // 0.33-0.66: orange → yellow (hue 25 → 45)  
-  // 0.66-1.0: yellow → green (hue 45 → 142)
-  let hue: number
-  if (t < 0.33) {
-    hue = t * 3 * 25 // 0 → 25
-  } else if (t < 0.66) {
-    hue = 25 + (t - 0.33) * 3 * 20 // 25 → 45
+  // Four discrete colors based on quality range
+  if (t < 0.25) {
+    return colors.red      // 0.80-0.85: red
+  } else if (t < 0.50) {
+    return colors.amber    // 0.85-0.90: amber
+  } else if (t < 0.75) {
+    return colors.yellow   // 0.90-0.95: yellow
   } else {
-    hue = 45 + (t - 0.66) * 3 * 97 // 45 → 142
+    return colors.green    // 0.95-1.00: green
   }
-  
-  return `hsl(${hue}, 72%, 50%)`
 }
 
-// Get slightly muted version of quality color for non-hovered states
-// Still vibrant but distinguishable from hovered state
-function getMutedQualityColor(quality: number, isDarkMode: boolean): string {
-  const t = Math.max(0, Math.min(1, (quality - 0.80) / 0.20))
-  
-  let hue: number
-  if (t < 0.33) {
-    hue = t * 3 * 25
-  } else if (t < 0.66) {
-    hue = 25 + (t - 0.33) * 3 * 20
-  } else {
-    hue = 45 + (t - 0.66) * 3 * 97
-  }
-  
-  // Brighter colors while meeting WCAG AA (3:1 contrast for graphical objects)
-  return `hsl(${hue}, 70%, ${isDarkMode ? 53 : 45}%)`
+// Get quality color for non-hovered states
+// Uses the same vibrant colors - hover state differentiates via size/stroke
+function getMutedQualityColor(quality: number, _isDarkMode: boolean): string {
+  // Just use the same vibrant colors as getQualityColor
+  // The hover state adds visual emphasis through size changes
+  return getQualityColor(quality)
 }
 
 // Determine if text should be dark or light based on quality
 // All quality colors are bright enough to need dark text
-function getTextColorForQuality(quality: number): string {
+function getTextColorForQuality(_quality: number): string {
   return "#000"
 }
 
@@ -100,10 +94,10 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
-      <div className="px-6 py-5">
-        <div className="flex flex-col items-center gap-6">
-          <div className="flex items-center gap-6 flex-wrap justify-center">
-            <svg width="140" height="80" viewBox="0 0 140 80">
+      <div className="px-4 sm:px-6 py-5">
+        <div className="flex flex-col items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center overflow-x-auto max-w-full">
+            <svg className="w-[100px] sm:w-[140px] h-auto flex-shrink-0" viewBox="0 0 140 80">
               <line x1="20" y1="25" x2="120" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
               <line x1="20" y1="55" x2="120" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
               <text x="12" y="29" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₁</text>
@@ -115,9 +109,9 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
               <line x1="70" y1="30" x2="70" y2="50" stroke={muted.strokePrimary} strokeWidth="1" />
             </svg>
             
-            <span className="text-xl" style={{ color: muted.textMuted }}>=</span>
+            <span className="text-lg sm:text-xl flex-shrink-0" style={{ color: muted.textMuted }}>=</span>
             
-            <svg width={showDecomposition ? "300" : "140"} height="80" viewBox={showDecomposition ? "0 0 300 80" : "0 0 140 80"} className="transition-all duration-300">
+            <svg className={`h-auto flex-shrink-0 transition-all duration-300 ${showDecomposition ? "w-[200px] sm:w-[300px]" : "w-[100px] sm:w-[140px]"}`} viewBox={showDecomposition ? "0 0 300 80" : "0 0 140 80"}>
               <line x1="20" y1="25" x2={showDecomposition ? "280" : "120"} y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
               <line x1="20" y1="55" x2={showDecomposition ? "280" : "120"} y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
               {showDecomposition ? (
@@ -150,7 +144,7 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
           </Button>
         </div>
       </div>
-      <div className="px-6 py-4 text-sm" style={{ color: muted.textMuted }}>
+      <div className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm" style={{ color: muted.textMuted }}>
         A SWAP gate exchanges quantum states between two qubits. It requires 3 CNOT operations, 
         so each SWAP inherits 3× the two-qubit gate error.
       </div>
@@ -271,8 +265,8 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
-        <div className="p-6">
-          <svg width="310" height="170" viewBox="0 0 310 170" className="mx-auto">
+        <div className="p-4 sm:p-6 overflow-x-auto">
+          <svg className="w-full max-w-[310px] h-auto mx-auto" viewBox="0 0 310 170">
             {TOPOLOGY_EDGES.map((edge, i) => {
               const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
               const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
@@ -354,7 +348,7 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
             })}
           </svg>
 
-          <div className="mt-4 text-center text-sm font-mono min-h-[1.5rem]">
+          <div className="mt-4 text-center text-xs sm:text-sm font-mono min-h-[1.5rem]">
             {selectedQubits.length === 2 ? (
               <span>
                 <span style={{ color: muted.textSecondary }}>Q{selectedQubits[0]} → Q{selectedQubits[1]}:</span>{" "}
@@ -458,7 +452,7 @@ function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: n
   const muted = getMutedColors(isDarkMode)
   
   return (
-    <svg width="280" height="155" viewBox="0 0 310 170">
+    <svg className="w-full max-w-[280px] h-auto" viewBox="0 0 310 170">
       {TOPOLOGY_EDGES.map((edge, i) => {
         const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
         const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
@@ -530,13 +524,13 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
-      <div className="p-6">
-        <div className="mb-6">
+      <div className="p-4 sm:p-6">
+        <div className="mb-4 sm:mb-6 overflow-x-auto">
           <p className="text-xs uppercase tracking-wider mb-3" style={{ color: muted.textMuted }}>Input circuit</p>
           <QuantumCircuit numQubits={3} gates={originalGates} labels={["q₀", "q₁", "q₂"]} width={220} isDarkMode={isDarkMode} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: colors.bad }} />
@@ -546,7 +540,7 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
             <div className="mt-3 overflow-x-auto">
               <QuantumCircuit numQubits={4} gates={randomRoutedGates} labels={["q₀", "q₁", "q₂", ""]} width={300} isDarkMode={isDarkMode} />
             </div>
-            <div className="mt-3 flex gap-6 text-sm font-mono">
+            <div className="mt-3 flex gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
               <span><span style={{ color: muted.textMuted }}>SWAPs:</span> <span style={{ color: colors.bad }}>4</span></span>
               <span><span style={{ color: muted.textMuted }}>Fidelity:</span> <span style={{ color: colors.bad }}>~52%</span></span>
             </div>
@@ -558,10 +552,10 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
               <span className="text-sm" style={{ color: colors.good }}>Noise-aware</span>
             </div>
             <PlacementTopology highlightQubits={[5, 8, 9]} isDarkMode={isDarkMode} />
-            <div className="mt-3">
+            <div className="mt-3 overflow-x-auto">
               <QuantumCircuit numQubits={3} gates={smartRoutedGates} labels={["q₀", "q₁", "q₂"]} width={260} isDarkMode={isDarkMode} />
             </div>
-            <div className="mt-3 flex gap-6 text-sm font-mono">
+            <div className="mt-3 flex gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
               <span><span style={{ color: muted.textMuted }}>SWAPs:</span> <span style={{ color: colors.good }}>1</span></span>
               <span><span style={{ color: muted.textMuted }}>Fidelity:</span> <span style={{ color: colors.good }}>~89%</span></span>
             </div>
@@ -611,13 +605,13 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
 
   return (
     <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
-      <div className="p-6">
-        <p className="text-sm mb-5" style={{ color: muted.textSecondary }}>
+      <div className="p-4 sm:p-6">
+        <p className="text-xs sm:text-sm mb-4 sm:mb-5" style={{ color: muted.textSecondary }}>
           Moving state from <span className="font-mono" style={{ color: colors.accent }}>Q0</span> to <span className="font-mono" style={{ color: colors.accent }}>Q5</span>
         </p>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          <svg width="280" height="120" viewBox="0 0 280 120" className="flex-shrink-0">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          <svg className="w-full max-w-[280px] h-auto flex-shrink-0 mx-auto lg:mx-0" viewBox="0 0 280 120">
             {miniEdges.map((edge, i) => {
               const from = miniQubits.find(q => q.id === edge.from)!
               const to = miniQubits.find(q => q.id === edge.to)!
@@ -682,7 +676,7 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
             })}
           </svg>
 
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 space-y-2 min-w-0">
             <button
               onClick={() => setSelectedPath("short")}
               className="w-full text-left px-3 py-2.5 rounded-md transition-colors"
@@ -691,8 +685,8 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                 color: selectedPath === "short" ? muted.textPrimary : muted.textSecondary
               }}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Short path</span>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs sm:text-sm font-medium">Short path</span>
                 <span className="text-xs font-mono tracking-tight" style={{ color: muted.textSecondary }}>0 → 3 → 5</span>
               </div>
               <div className="text-xs mt-0.5" style={{ color: muted.textMuted }}>2 SWAPs · fidelities: 88%, 85%</div>
@@ -706,16 +700,16 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                 color: selectedPath === "quality" ? muted.textPrimary : muted.textSecondary
               }}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Quality path</span>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs sm:text-sm font-medium">Quality path</span>
                 <span className="text-xs font-mono tracking-tight" style={{ color: muted.textSecondary }}>0 → 1 → 2 → 4 → 5</span>
               </div>
               <div className="text-xs mt-0.5" style={{ color: muted.textMuted }}>4 SWAPs · fidelities: 97%, 99%, 98%, 96%</div>
             </button>
 
             <div className="pt-3 flex items-center justify-between">
-              <span className="text-sm" style={{ color: muted.textMuted }}>Total fidelity</span>
-              <span className="text-xl font-mono" style={{ color: selectedPath === "short" ? colors.bad : colors.good }}>
+              <span className="text-xs sm:text-sm" style={{ color: muted.textMuted }}>Total fidelity</span>
+              <span className="text-lg sm:text-xl font-mono" style={{ color: selectedPath === "short" ? colors.bad : colors.good }}>
                 {((selectedPath === "short" ? shortPathFidelity : qualityPathFidelity) * 100).toFixed(0)}%
               </span>
             </div>
@@ -742,10 +736,10 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <div className="rounded-lg not-prose" style={{ backgroundColor: muted.bgSubtle }}>
-      <div className="p-6 space-y-5">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-2">
+            <div className="flex justify-between text-xs sm:text-sm mb-2">
               <span style={{ color: muted.textSecondary }}>Two-qubit gates</span>
               <span className="font-mono">{gateCount}</span>
             </div>
@@ -763,7 +757,7 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
           </div>
 
           <div>
-            <div className="flex justify-between text-sm mb-2">
+            <div className="flex justify-between text-xs sm:text-sm mb-2">
               <span style={{ color: muted.textSecondary }}>Per-gate fidelity</span>
               <span className="font-mono">{(gateFidelity * 100).toFixed(1)}%</span>
             </div>
@@ -782,18 +776,18 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
           </div>
         </div>
 
-        <div className="flex items-end justify-between pt-2">
+        <div className="flex items-end justify-between pt-2 gap-4">
           <div>
             <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Circuit fidelity</p>
-            <p className="text-2xl font-mono leading-none" style={{ margin: 0, marginTop: '4px' }}>{(totalFidelity * 100).toFixed(1)}%</p>
+            <p className="text-xl sm:text-2xl font-mono leading-none" style={{ margin: 0, marginTop: '4px' }}>{(totalFidelity * 100).toFixed(1)}%</p>
           </div>
           <div className="text-right">
             <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>With +0.5% per gate</p>
-            <p className="text-2xl font-mono leading-none" style={{ color: colors.good, margin: 0, marginTop: '4px' }}>{(improvedFidelity * 100).toFixed(1)}%</p>
+            <p className="text-xl sm:text-2xl font-mono leading-none" style={{ color: colors.good, margin: 0, marginTop: '4px' }}>{(improvedFidelity * 100).toFixed(1)}%</p>
           </div>
         </div>
 
-        <p className="text-sm pt-1" style={{ color: muted.textMuted, margin: 0 }}>
+        <p className="text-xs sm:text-sm pt-1" style={{ color: muted.textMuted, margin: 0 }}>
           Small improvements compound to <span className="font-mono" style={{ color: colors.good }}>+{(improvement * 100).toFixed(0)}%</span> total
         </p>
       </div>
@@ -830,8 +824,8 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <div className="rounded-lg not-prose" style={{ backgroundColor: muted.bgSubtle }}>
-      <div className="p-6">
-        <svg width="100%" height="60" viewBox="0 0 480 60" preserveAspectRatio="xMidYMid meet">
+      <div className="p-4 sm:p-6 overflow-x-auto">
+        <svg className="w-full min-w-[400px] h-[60px]" viewBox="0 0 480 60" preserveAspectRatio="xMidYMid meet">
           <line x1="50" y1="30" x2="460" y2="30" stroke={muted.strokeMuted} strokeWidth="1" />
           <text x="20" y="34" fill={muted.strokePrimary} fontSize="11" fontFamily="monospace">|ψ⟩</text>
           
@@ -871,10 +865,10 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
           })}
         </svg>
 
-        <div className="flex items-end justify-between mt-5">
+        <div className="flex items-end justify-between mt-4 sm:mt-5 gap-4">
           <div>
             <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Fidelity</p>
-            <p className="text-2xl font-mono leading-none" style={{ color: getQualityColor(currentFidelity), margin: 0, marginTop: '2px' }}>
+            <p className="text-xl sm:text-2xl font-mono leading-none" style={{ color: getQualityColor(currentFidelity), margin: 0, marginTop: '2px' }}>
               {(currentFidelity * 100).toFixed(0)}%
             </p>
           </div>
@@ -882,27 +876,27 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="p-1 rounded transition-colors"
+              className="p-1.5 sm:p-1 rounded transition-colors"
               style={{ color: muted.textSecondary }}
             >
               {isPlaying ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="sm:w-3 sm:h-3">
                   <rect x="6" y="4" width="4" height="16" rx="1" />
                   <rect x="14" y="4" width="4" height="16" rx="1" />
                 </svg>
               ) : (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="sm:w-3 sm:h-3">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               )}
             </button>
             
-            <div className="flex gap-0.5">
+            <div className="flex gap-1 sm:gap-0.5">
               {steps.map((s, i) => (
                 <button
                   key={i}
                   onClick={() => { setStep(i); setIsPlaying(false); }}
-                  className="w-1.5 h-1.5 rounded-full transition-colors"
+                  className="w-2 h-2 sm:w-1.5 sm:h-1.5 rounded-full transition-colors"
                   style={{ 
                     backgroundColor: i <= step 
                       ? getQualityColor(s.fidelity) 

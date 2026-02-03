@@ -39,7 +39,7 @@ const circuitMatchingToc: TocItem[] = [
   { id: "bigger-picture", title: "The Bigger Picture", level: 2 },
 ]
 
-// Table of Contents Sidebar Component
+// Table of Contents Sidebar Component (Desktop)
 function TableOfContents({ 
   items, 
   isDarkMode,
@@ -92,38 +92,163 @@ function TableOfContents({
   }
 
   return (
-    <nav className="hidden xl:block">
-      <div className="sticky top-8">
-        <div className="flex items-center gap-2 mb-4">
-          <button
-            onClick={onToggle}
-            className={`p-1 rounded transition-colors ${
-              isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
-            }`}
-            aria-label={isCollapsed ? "Expand table of contents" : "Collapse table of contents"}
-          >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
-            On this page
-          </h4>
-        </div>
-        <div 
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+    <nav className="sticky top-8 h-fit">
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={onToggle}
+          className={`p-1 rounded transition-colors ${
+            isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
           }`}
+          aria-label={isCollapsed ? "Expand table of contents" : "Collapse table of contents"}
         >
-          <ul className="space-y-2">
+          <svg 
+            width="16" 
+            height="16" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+          On this page
+        </h4>
+      </div>
+      <div 
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+        }`}
+      >
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li key={item.id}>
+              <a
+                href={`#${item.id}`}
+                onClick={(e) => handleClick(e, item.id)}
+                className={`block text-sm transition-colors leading-relaxed ${
+                  item.level === 3 ? "pl-3" : ""
+                } ${
+                  activeId === item.id
+                    ? isDarkMode
+                      ? "text-white font-medium"
+                      : "text-black font-medium"
+                    : isDarkMode
+                    ? "text-white/50 hover:text-white/80"
+                    : "text-black/50 hover:text-black/80"
+                }`}
+              >
+                {item.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  )
+}
+
+// Mobile Table of Contents Component
+function MobileTableOfContents({
+  items,
+  isDarkMode,
+  isOpen,
+  onClose,
+}: {
+  items: TocItem[]
+  isDarkMode: boolean
+  isOpen: boolean
+  onClose: () => void
+}) {
+  const [activeId, setActiveId] = useState<string>("")
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id)
+          }
+        })
+      },
+      {
+        rootMargin: "-80px 0px -80% 0px",
+        threshold: 0,
+      }
+    )
+
+    items.forEach((item) => {
+      const element = document.getElementById(item.id)
+      if (element) {
+        observer.observe(element)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [items])
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault()
+    const element = document.getElementById(id)
+    if (element) {
+      const offset = 80
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: "smooth",
+      })
+      onClose()
+    }
+  }
+
+  // Prevent body scroll when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 lg:hidden ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={onClose}
+      />
+      
+      {/* Drawer */}
+      <div
+        className={`fixed top-0 left-0 h-full w-72 z-50 transform transition-transform duration-300 ease-out lg:hidden ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } ${isDarkMode ? "bg-black border-r border-white/10" : "bg-white border-r border-black/10"}`}
+      >
+        <div className="p-6 h-full overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+              On this page
+            </h4>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded transition-colors ${
+                isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+              }`}
+              aria-label="Close table of contents"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <ul className="space-y-3">
             {items.map((item) => (
               <li key={item.id}>
                 <a
@@ -148,7 +273,7 @@ function TableOfContents({
           </ul>
         </div>
       </div>
-    </nav>
+    </>
   )
 }
 
@@ -376,19 +501,19 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Noisy</td>
               <td className="p-3 opacity-75">90-99%</td>
-              <td className="p-3 opacity-75" style={{ color: "hsl(142, 71%, 45%)" }}>+{benchmarkStats.regimeGains.noisy}% avg</td>
+              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.noisy}% avg</td>
               <td className="p-3 opacity-75">Older/degraded devices</td>
             </tr>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Good</td>
               <td className="p-3 opacity-75">95-99%</td>
-              <td className="p-3 opacity-75" style={{ color: "hsl(142, 65%, 55%)" }}>+{benchmarkStats.regimeGains.good}% avg</td>
+              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.good}% avg</td>
               <td className="p-3 opacity-75">Current superconducting</td>
             </tr>
             <tr>
               <td className="p-3 font-medium">Excellent</td>
               <td className="p-3 opacity-75">99-99.9%</td>
-              <td className="p-3 opacity-75" style={{ color: "hsl(142, 55%, 65%)" }}>+{benchmarkStats.regimeGains.excellent}% avg</td>
+              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.excellent}% avg</td>
               <td className="p-3 opacity-75">High-quality/trapped-ion</td>
             </tr>
           </tbody>
@@ -405,34 +530,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
       <p>
         An honest question: does noise-aware routing matter in the fault-tolerant era? The short answer is <strong>NACRE is explicitly a NISQ-era tool</strong>, and that&apos;s a feature, not a limitation.
       </p>
-      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
-              <th className="text-left p-3 font-medium">Era</th>
-              <th className="text-left p-3 font-medium">Hardware State</th>
-              <th className="text-left p-3 font-medium">NACRE Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3 font-medium">NISQ (now)</td>
-              <td className="p-3 opacity-75">Noisy, heterogeneous fidelities</td>
-              <td className="p-3 opacity-75" style={{ color: "#22c55e" }}><strong>High</strong> — fidelity variance is the norm</td>
-            </tr>
-            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3 font-medium">Early QEC</td>
-              <td className="p-3 opacity-75">Partial error correction, varying logical fidelities</td>
-              <td className="p-3 opacity-75" style={{ color: "#f59e0b" }}><strong>Moderate</strong> — logical qubits may still differ</td>
-            </tr>
-            <tr>
-              <td className="p-3 font-medium">Full fault-tolerant</td>
-              <td className="p-3 opacity-75">Uniform, near-perfect logical gates</td>
-              <td className="p-3 opacity-75" style={{ color: "#737373" }}><strong>Low</strong> — all paths are equivalent</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  
       <p>
         The entire purpose of quantum error correction is to encode logical qubits such that logical operations have near-perfect, <em>uniform</em> fidelity. This eliminates the variance that NACRE exploits. When all paths are equivalent, SWAP minimization (what SABRE does) becomes the right objective again.
       </p>
@@ -500,6 +598,7 @@ export default function BlogPostPage() {
   
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [isTocCollapsed, setIsTocCollapsed] = useState(false)
+  const [isMobileTocOpen, setIsMobileTocOpen] = useState(false)
 
   if (!post) {
     return (
@@ -516,9 +615,36 @@ export default function BlogPostPage() {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col min-h-screen">
+      {/* Mobile TOC Drawer */}
+      {post.toc && post.toc.length > 0 && (
+        <MobileTableOfContents
+          items={post.toc}
+          isDarkMode={isDarkMode}
+          isOpen={isMobileTocOpen}
+          onClose={() => setIsMobileTocOpen(false)}
+        />
+      )}
+
+      {/* Mobile TOC Floating Button */}
+      {post.toc && post.toc.length > 0 && (
+        <button
+          onClick={() => setIsMobileTocOpen(true)}
+          className={`fixed bottom-6 right-6 z-30 p-3 rounded-full shadow-lg transition-colors lg:hidden ${
+            isDarkMode 
+              ? "bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20" 
+              : "bg-black/10 hover:bg-black/20 backdrop-blur-sm border border-black/20"
+          }`}
+          aria-label="Open table of contents"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 6h16M4 12h16M4 18h10" />
+          </svg>
+        </button>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col min-h-screen">
         {/* Top bar with back button and theme toggle */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6 sm:mb-8">
           <Link
             href="/"
             className={`p-2 rounded-full transition-colors ${
@@ -551,10 +677,10 @@ export default function BlogPostPage() {
         </div>
 
         {/* Main content wrapper with sidebar */}
-        <div className="flex-grow flex gap-8">
-          {/* Table of Contents Sidebar - Left side */}
+        <div className="flex-grow flex gap-8 lg:gap-12">
+          {/* Table of Contents Sidebar - Left side (hidden on mobile) */}
           {post.toc && post.toc.length > 0 && (
-            <aside className="w-64 flex-shrink-0">
+            <aside className="hidden lg:block w-56 xl:w-64 flex-shrink-0">
               <TableOfContents 
                 items={post.toc} 
                 isDarkMode={isDarkMode} 
@@ -565,59 +691,103 @@ export default function BlogPostPage() {
           )}
 
           {/* Main content */}
-          <div className="flex-1 max-w-4xl">
-
+          <div className="flex-1 min-w-0 max-w-4xl mx-auto lg:mx-0">
             {/* Blog Post Content */}
-            <article className="mb-16">
-              <header className="mb-10">
+            <article className="mb-12 sm:mb-16">
+              <header className="mb-8 sm:mb-10">
                 <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
-                <h1 className="text-2xl sm:text-3xl font-medium mt-2 leading-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-medium mt-2 leading-tight">
                   {post.title}
                 </h1>
               </header>
               
-              <div className={`prose prose-lg max-w-none ${isDarkMode ? "prose-invert" : ""}`}>
+              <div className={`prose prose-sm sm:prose-base lg:prose-lg max-w-none ${isDarkMode ? "prose-invert" : ""}`}>
                 <style jsx>{`
                   div :global(p) {
-                    margin-bottom: 1.75rem;
+                    margin-bottom: 1.5rem;
                     line-height: 1.8;
                     opacity: 0.9;
                   }
-                  div :global(h2) {
-                    font-size: 1.375rem;
-                    font-weight: 500;
-                    margin-top: 3rem;
-                    margin-bottom: 1.25rem;
-                    scroll-margin-top: 80px;
+                  @media (min-width: 640px) {
+                    div :global(p) {
+                      margin-bottom: 1.75rem;
+                    }
                   }
-                  div :global(h3) {
-                    font-size: 1.15rem;
+                  div :global(h2) {
+                    font-size: 1.25rem;
                     font-weight: 500;
                     margin-top: 2.5rem;
                     margin-bottom: 1rem;
                     scroll-margin-top: 80px;
                   }
+                  @media (min-width: 640px) {
+                    div :global(h2) {
+                      font-size: 1.375rem;
+                      margin-top: 3rem;
+                      margin-bottom: 1.25rem;
+                    }
+                  }
+                  div :global(h3) {
+                    font-size: 1.1rem;
+                    font-weight: 500;
+                    margin-top: 2rem;
+                    margin-bottom: 0.75rem;
+                    scroll-margin-top: 80px;
+                  }
+                  @media (min-width: 640px) {
+                    div :global(h3) {
+                      font-size: 1.15rem;
+                      margin-top: 2.5rem;
+                      margin-bottom: 1rem;
+                    }
+                  }
                   div :global(ul), div :global(ol) {
-                    margin-bottom: 1.75rem;
-                    padding-left: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    padding-left: 1.25rem;
                     list-style-type: disc;
+                  }
+                  @media (min-width: 640px) {
+                    div :global(ul), div :global(ol) {
+                      margin-bottom: 1.75rem;
+                      padding-left: 1.5rem;
+                    }
                   }
                   div :global(ol) {
                     list-style-type: decimal;
                   }
                   div :global(li) {
-                    margin-bottom: 0.625rem;
+                    margin-bottom: 0.5rem;
                     line-height: 1.8;
                     opacity: 0.9;
                   }
+                  @media (min-width: 640px) {
+                    div :global(li) {
+                      margin-bottom: 0.625rem;
+                    }
+                  }
                   div :global(pre) {
-                    margin-bottom: 1.75rem;
+                    margin-bottom: 1.5rem;
+                    font-size: 0.8rem;
+                  }
+                  @media (min-width: 640px) {
+                    div :global(pre) {
+                      margin-bottom: 1.75rem;
+                      font-size: 0.875rem;
+                    }
                   }
                   div :global(strong) {
                     font-weight: 600;
                   }
                   div :global(em) {
                     font-style: italic;
+                  }
+                  div :global(table) {
+                    font-size: 0.8rem;
+                  }
+                  @media (min-width: 640px) {
+                    div :global(table) {
+                      font-size: 0.875rem;
+                    }
                   }
                 `}</style>
                 {typeof post.content === 'function' ? post.content(isDarkMode) : post.content}
@@ -627,8 +797,8 @@ export default function BlogPostPage() {
         </div>
 
         {/* Footer Links Section */}
-        <div className="mt-auto pt-8 pb-4 border-t border-current/10 max-w-4xl">
-          <div className="flex flex-wrap gap-4 text-sm">
+        <div className="mt-auto pt-6 sm:pt-8 pb-4 border-t border-current/10">
+          <div className="flex flex-wrap gap-3 sm:gap-4 text-sm">
             <Link href="/" className="hover:opacity-70">Home</Link>
             <Link href="/blog" className="hover:opacity-70">Blog</Link>
             <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>

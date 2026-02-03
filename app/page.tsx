@@ -3,6 +3,7 @@
 import { Dithering } from "@paper-design/shaders-react"
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import colors from "tailwindcss/colors"
 
 // Available shapes from the Dithering component
 const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
@@ -208,7 +209,7 @@ export default function ResumePage() {
         </div>
 
         {/* Divider */}
-        <hr className="border-t-2 border-current opacity-20 mb-10 w-full sm:w-[600px] lg:w-[640px]" />
+        <hr className="border-t-1.5 border-current opacity-20 mb-10 w-full sm:w-[600px] lg:w-[640px]" />
 
         {/* Writing Section */}
         <div className="mb-12 w-full sm:w-[600px] lg:w-[640px]">
@@ -248,7 +249,7 @@ export default function ResumePage() {
         <Dithering
           style={{ height: "100%", width: "100%" }}
           colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 100%)"}
-          colorFront="hsl(220, 100%, 70%)"
+          colorFront={colors.blue[500]}
           shape={randomShape}
           type="4x4"
           pxSize={3}

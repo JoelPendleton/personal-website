@@ -151,29 +151,41 @@ function calculateStdGain(data: typeof benchmarkDataNoisy) {
   return Math.sqrt(avgSquaredDiff)
 }
 
+// Import Tailwind colors directly for use in Recharts (which requires hex values)
+import twColors from "tailwindcss/colors"
+
+const tailwindColors = {
+  green: twColors.green[500],
+  red: twColors.red[500],
+  yellow: twColors.yellow[500],
+  amber: twColors.amber[500],
+  blue: twColors.blue[500],
+  gray: twColors.gray[500],
+}
+
 // Regime comparison data - computed from actual benchmark data
-// Using shades of NACRE green for consistency (all positive gains)
+// Using distinct colors: green (best), amber (medium), yellow (lowest)
 const regimeComparisonData = [
   { 
     regime: "Noisy (90-99%)", 
     avgGain: Math.round(calculateAverageGain(benchmarkDataNoisy) * 10) / 10, 
     stdGain: Math.round(calculateStdGain(benchmarkDataNoisy) * 10) / 10,
     description: "Older/degraded devices", 
-    color: "hsl(142, 71%, 45%)"  // NACRE green (darkest - highest gain)
+    color: tailwindColors.green  // Green (highest gain)
   },
   { 
     regime: "Good (95-99%)", 
     avgGain: Math.round(calculateAverageGain(benchmarkDataGood) * 10) / 10, 
     stdGain: Math.round(calculateStdGain(benchmarkDataGood) * 10) / 10,
     description: "Current superconducting", 
-    color: "hsl(142, 65%, 55%)"  // Medium green
+    color: tailwindColors.green  // Green (medium gain)
   },
   { 
     regime: "Excellent (99-99.9%)", 
     avgGain: Math.round(calculateAverageGain(benchmarkDataExcellent) * 10) / 10, 
     stdGain: Math.round(calculateStdGain(benchmarkDataExcellent) * 10) / 10,
     description: "High-quality/trapped-ion", 
-    color: "hsl(142, 55%, 65%)"  // Lighter green (lowest gain)
+    color: tailwindColors.green  // Green (lowest gain)
   },
 ]
 
@@ -307,11 +319,11 @@ print(qc.draw())`
   },
 }
 
-// Colors for charts
+// Colors for charts - using Tailwind 500 values
 const colors = {
-  nacre: "hsl(142, 71%, 45%)",  // Green
-  sabre: "hsl(0, 72%, 51%)",    // Red
-  neutral: "hsl(220, 10%, 50%)",
+  nacre: tailwindColors.green,
+  sabre: tailwindColors.red,
+  neutral: "#6b7280", // Tailwind gray-500
 }
 
 // Chart configuration for tooltips and legends
@@ -448,23 +460,23 @@ function DetailedResultsTable({
 
   return (
     <div className="rounded-lg overflow-hidden" style={{ backgroundColor: muted.bgSubtle }}>
-      <div className="p-4 border-b" style={{ borderColor: muted.border }}>
+      <div className="p-3 sm:p-4 border-b" style={{ borderColor: muted.border }}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h4 className="text-sm font-medium" style={{ color: muted.textPrimary }}>
+            <h4 className="text-xs sm:text-sm font-medium" style={{ color: muted.textPrimary }}>
               Detailed Benchmark Results
             </h4>
-            <p className="text-xs mt-1" style={{ color: muted.textMuted }}>
+            <p className="text-[10px] sm:text-xs mt-1" style={{ color: muted.textMuted }}>
               {metadata.device_qubits}-qubit {metadata.topology} topology, {metadata.runs_per_circuit} runs per circuit
             </p>
           </div>
           {/* Regime Toggle */}
-          <div className="flex rounded-lg overflow-hidden" style={{ backgroundColor: muted.bgMuted }}>
+          <div className="flex rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: muted.bgMuted }}>
             {(['noisy', 'good', 'excellent'] as const).map((regime) => (
               <button
                 key={regime}
                 onClick={() => setSelectedRegime(regime)}
-                className="px-3 py-1.5 text-xs font-medium transition-colors"
+                className="px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-medium transition-colors"
                 style={{
                   backgroundColor: selectedRegime === regime 
                     ? (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')
@@ -480,16 +492,16 @@ function DetailedResultsTable({
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm min-w-[600px]">
           <thead>
             <tr style={{ backgroundColor: muted.bgMuted }}>
-              <th className="text-left p-3 font-medium" style={{ color: muted.textPrimary }}>Circuit</th>
-              <th className="text-right p-3 font-medium" style={{ color: muted.textPrimary }}>NACRE Fidelity</th>
-              <th className="text-right p-3 font-medium" style={{ color: muted.textPrimary }}>SABRE Fidelity</th>
-              <th className="text-right p-3 font-medium" style={{ color: muted.textPrimary }}>Gain</th>
-              <th className="text-right p-3 font-medium" style={{ color: muted.textPrimary }}>NACRE SWAPs</th>
-              <th className="text-right p-3 font-medium" style={{ color: muted.textPrimary }}>SABRE SWAPs</th>
-              <th className="text-center p-3 font-medium" style={{ color: muted.textPrimary }}>Code</th>
+              <th className="text-left p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>Circuit</th>
+              <th className="text-right p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>NACRE Fid.</th>
+              <th className="text-right p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>SABRE Fid.</th>
+              <th className="text-right p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>Gain</th>
+              <th className="text-right p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>NACRE SWAPs</th>
+              <th className="text-right p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>SABRE SWAPs</th>
+              <th className="text-center p-2 sm:p-3 font-medium whitespace-nowrap" style={{ color: muted.textPrimary }}>Code</th>
             </tr>
           </thead>
           <tbody>
@@ -502,23 +514,23 @@ function DetailedResultsTable({
                   className="border-t transition-colors"
                   style={{ borderColor: muted.border }}
                 >
-                  <td className="p-3 font-mono" style={{ color: muted.textPrimary }}>{row.circuit}</td>
-                  <td className="p-3 text-right font-mono" style={{ color: colors.nacre }}>
+                  <td className="p-2 sm:p-3 font-mono whitespace-nowrap" style={{ color: muted.textPrimary }}>{row.circuit}</td>
+                  <td className="p-2 sm:p-3 text-right font-mono whitespace-nowrap" style={{ color: colors.nacre }}>
                     {(row.nacreFid * 100).toFixed(1)}%
                   </td>
-                  <td className="p-3 text-right font-mono" style={{ color: colors.sabre }}>
+                  <td className="p-2 sm:p-3 text-right font-mono whitespace-nowrap" style={{ color: colors.sabre }}>
                     {(row.sabreFid * 100).toFixed(1)}%
                   </td>
-                  <td className="p-3 text-right font-mono" style={{ color: row.fidGain > 0 ? colors.nacre : colors.sabre }}>
+                  <td className="p-2 sm:p-3 text-right font-mono whitespace-nowrap" style={{ color: row.fidGain > 0 ? colors.nacre : colors.sabre }}>
                     {row.fidGain > 0 ? '+' : ''}{row.fidGain.toFixed(1)}%
                   </td>
-                  <td className="p-3 text-right font-mono" style={{ color: muted.textSecondary }}>
+                  <td className="p-2 sm:p-3 text-right font-mono whitespace-nowrap" style={{ color: muted.textSecondary }}>
                     {row.nacreSwaps.toFixed(1)}
                   </td>
-                  <td className="p-3 text-right font-mono" style={{ color: muted.textSecondary }}>
+                  <td className="p-2 sm:p-3 text-right font-mono whitespace-nowrap" style={{ color: muted.textSecondary }}>
                     {row.sabreSwaps.toFixed(1)}
                   </td>
-                  <td className="p-3 text-center">
+                  <td className="p-2 sm:p-3 text-center">
                     <Dialog>
                       <DialogTrigger asChild>
                         <button
@@ -567,36 +579,36 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
   const getCircuitType = (name: string) => name.split("-")[0]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-lg p-4" style={{ backgroundColor: muted.bgSubtle }}>
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>Avg Fidelity Gain</p>
-          <p className="text-2xl font-mono" style={{ color: colors.nacre }}>+{avgFidGain.toFixed(1)}%</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: muted.bgSubtle }}>
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>Avg Fidelity Gain</p>
+          <p className="text-lg sm:text-2xl font-mono" style={{ color: colors.nacre }}>+{avgFidGain.toFixed(1)}%</p>
         </div>
-        <div className="rounded-lg p-4" style={{ backgroundColor: muted.bgSubtle }}>
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>Max Circuit Gain</p>
-          <p className="text-2xl font-mono" style={{ color: colors.nacre }}>+{benchmarkStats.maxGainCircuit.fidGain.toFixed(1)}%</p>
+        <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: muted.bgSubtle }}>
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>Max Circuit Gain</p>
+          <p className="text-lg sm:text-2xl font-mono" style={{ color: colors.nacre }}>+{benchmarkStats.maxGainCircuit.fidGain.toFixed(1)}%</p>
         </div>
-        <div className="rounded-lg p-4" style={{ backgroundColor: muted.bgSubtle }}>
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>NACRE Wins</p>
-          <p className="text-2xl font-mono" style={{ color: colors.nacre }}>{nacreWins}/{primaryBenchmarkData.length}</p>
+        <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: muted.bgSubtle }}>
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>NACRE Wins</p>
+          <p className="text-lg sm:text-2xl font-mono" style={{ color: colors.nacre }}>{nacreWins}/{primaryBenchmarkData.length}</p>
         </div>
-        <div className="rounded-lg p-4" style={{ backgroundColor: muted.bgSubtle }}>
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>Circuits Tested</p>
-          <p className="text-2xl font-mono" style={{ color: muted.textPrimary }}>{primaryBenchmarkData.length}</p>
+        <div className="rounded-lg p-3 sm:p-4" style={{ backgroundColor: muted.bgSubtle }}>
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider mb-1" style={{ color: muted.textMuted }}>Circuits Tested</p>
+          <p className="text-lg sm:text-2xl font-mono" style={{ color: muted.textPrimary }}>{primaryBenchmarkData.length}</p>
         </div>
       </div>
 
       {/* Fidelity Gain by Regime Chart */}
-      <div className="rounded-lg p-6" style={{ backgroundColor: muted.bgSubtle }}>
-        <h4 className="text-sm font-medium mb-2" style={{ color: muted.textPrimary }}>
+      <div className="rounded-lg p-4 sm:p-6" style={{ backgroundColor: muted.bgSubtle }}>
+        <h4 className="text-xs sm:text-sm font-medium mb-2" style={{ color: muted.textPrimary }}>
           NACRE Advantage by Fidelity Regime
         </h4>
-        <p className="text-xs mb-4" style={{ color: muted.textMuted }}>
+        <p className="text-[10px] sm:text-xs mb-4" style={{ color: muted.textMuted }}>
           NACRE&apos;s gains vary with device quality. Real NISQ devices have high noise variance.
         </p>
-        <ChartContainer config={chartConfig} className="min-h-[120px] h-[160px] w-full !aspect-auto">
+        <ChartContainer config={chartConfig} className="min-h-[100px] sm:min-h-[120px] h-[140px] sm:h-[160px] w-full !aspect-auto">
           <BarChart 
             accessibilityLayer
             data={regimeComparisonData} 
@@ -667,11 +679,11 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
 
 
       {/* Fidelity Comparison Chart - Good Regime */}
-      <div className="rounded-lg p-6" style={{ backgroundColor: muted.bgSubtle }}>
-        <h4 className="text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
+      <div className="rounded-lg p-4 sm:p-6 overflow-x-auto" style={{ backgroundColor: muted.bgSubtle }}>
+        <h4 className="text-xs sm:text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
           Fidelity Comparison: NACRE vs SABRE (Good Regime)
         </h4>
-        <ChartContainer config={chartConfig} className="min-h-[200px] h-[300px] w-full !aspect-auto">
+        <ChartContainer config={chartConfig} className="min-h-[180px] sm:min-h-[200px] h-[250px] sm:h-[300px] w-full min-w-[500px] !aspect-auto">
           <BarChart 
             accessibilityLayer
             data={primaryBenchmarkData} 
@@ -747,24 +759,24 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
             </Bar>
           </BarChart>
         </ChartContainer>
-        <div className="flex justify-center gap-6 mt-4">
+        <div className="flex justify-center gap-4 sm:gap-6 mt-4">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: colors.nacre }} />
-            <span className="text-sm" style={{ color: muted.textSecondary }}>NACRE</span>
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded" style={{ backgroundColor: colors.nacre }} />
+            <span className="text-xs sm:text-sm" style={{ color: muted.textSecondary }}>NACRE</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded" style={{ backgroundColor: colors.sabre }} />
-            <span className="text-sm" style={{ color: muted.textSecondary }}>SABRE</span>
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded" style={{ backgroundColor: colors.sabre }} />
+            <span className="text-xs sm:text-sm" style={{ color: muted.textSecondary }}>SABRE</span>
           </div>
         </div>
       </div>
 
       {/* Fidelity Gain Chart */}
-      <div className="rounded-lg p-6" style={{ backgroundColor: muted.bgSubtle }}>
-        <h4 className="text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
+      <div className="rounded-lg p-4 sm:p-6 overflow-x-auto" style={{ backgroundColor: muted.bgSubtle }}>
+        <h4 className="text-xs sm:text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
           Fidelity Improvement Over SABRE (%)
         </h4>
-        <ChartContainer config={chartConfig} className="h-[280px] w-full !aspect-auto">
+        <ChartContainer config={chartConfig} className="h-[240px] sm:h-[280px] w-full min-w-[500px] !aspect-auto">
           <BarChart 
             accessibilityLayer
             data={primaryBenchmarkData} 
@@ -847,54 +859,54 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
       />
 
       {/* Key Insights */}
-      <div className="rounded-lg p-6" style={{ backgroundColor: muted.bgSubtle }}>
-        <h4 className="text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
+      <div className="rounded-lg p-4 sm:p-6" style={{ backgroundColor: muted.bgSubtle }}>
+        <h4 className="text-xs sm:text-sm font-medium mb-3 sm:mb-4" style={{ color: muted.textPrimary }}>
           Key Findings
         </h4>
-        <ul className="space-y-2 text-sm" style={{ color: muted.textSecondary }}>
+        <ul className="space-y-2 text-xs sm:text-sm" style={{ color: muted.textSecondary }}>
           <li className="flex items-start gap-2">
-            <span style={{ color: colors.nacre }}>●</span>
+            <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
             <span><strong>NACRE wins on {nacreWins}/{primaryBenchmarkData.length} circuits</strong> in the good regime with an average fidelity gain of +{avgFidGain.toFixed(1)}%</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: colors.nacre }}>●</span>
+            <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
             <span><strong>Gains scale with noise</strong>: +{regimeComparisonData[0].avgGain}% on noisy devices, +{regimeComparisonData[2].avgGain}% on excellent devices</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: colors.nacre }}>●</span>
+            <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
             <span><strong>{benchmarkStats.maxGainCircuit.circuit} shows maximum gain</strong> (+{benchmarkStats.maxGainCircuit.fidGain.toFixed(1)}% in good regime) - circuits requiring non-trivial routing benefit most</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: colors.nacre }}>●</span>
+            <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
             <span><strong>QFT circuits show largest improvements</strong>: dense two-qubit gate patterns give NACRE more routing optimization opportunities</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: muted.textMuted }}>●</span>
+            <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
             <span><strong>SWAP count is secondary</strong>: NACRE may use slightly more SWAPs when they route through higher-fidelity hardware</span>
           </li>
         </ul>
       </div>
 
       {/* Methodology */}
-      <div className="rounded-lg p-6" style={{ backgroundColor: muted.bgSubtle }}>
-        <h4 className="text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
+      <div className="rounded-lg p-4 sm:p-6" style={{ backgroundColor: muted.bgSubtle }}>
+        <h4 className="text-xs sm:text-sm font-medium mb-3 sm:mb-4" style={{ color: muted.textPrimary }}>
           Benchmark Methodology
         </h4>
-        <ul className="space-y-2 text-sm" style={{ color: muted.textSecondary }}>
+        <ul className="space-y-2 text-xs sm:text-sm" style={{ color: muted.textSecondary }}>
           <li className="flex items-start gap-2">
-            <span style={{ color: muted.textMuted }}>●</span>
+            <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
             <span><strong>{benchmarkData.metadata.runs_per_circuit} runs per circuit</strong> with random device calibrations per seed for reproducibility</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: muted.textMuted }}>●</span>
+            <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
             <span><strong>{benchmarkData.metadata.device_qubits}-qubit {benchmarkData.metadata.topology} topology</strong> representative of current superconducting hardware</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: muted.textMuted }}>●</span>
+            <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
             <span><strong>Three fidelity regimes</strong>: Noisy (90-99%), Good (95-99%), Excellent (99-99.9%)</span>
           </li>
           <li className="flex items-start gap-2">
-            <span style={{ color: muted.textMuted }}>●</span>
+            <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
             <span><strong>Circuit families</strong>: GHZ, QFT, QAOA, VQE, Random - covering structured and unstructured workloads</span>
           </li>
         </ul>
