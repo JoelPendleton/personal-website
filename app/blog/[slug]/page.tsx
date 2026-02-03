@@ -13,7 +13,7 @@ import {
   ErrorAccumulation,
 } from "./circuit-matching-components"
 import { BenchmarkResults, benchmarkStats } from "./benchmark-results"
-import { CodeBlock, InlineMath } from "../components"
+import { Math, InlineMath } from "../components"
 
 // Table of contents types and data
 interface TocItem {
@@ -113,7 +113,7 @@ function TableOfContents({
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
-        <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+        <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/70"}`}>
           On this page
         </h4>
       </div>
@@ -137,7 +137,7 @@ function TableOfContents({
                       : "text-black font-medium"
                     : isDarkMode
                     ? "text-white/50 hover:text-white/80"
-                    : "text-black/50 hover:text-black/80"
+                    : "text-black/60 hover:text-black/90"
                 }`}
               >
                 {item.title}
@@ -233,7 +233,7 @@ function MobileTableOfContents({
       >
         <div className="p-6 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
-            <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+            <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/70"}`}>
               On this page
             </h4>
             <button
@@ -263,7 +263,7 @@ function MobileTableOfContents({
                         : "text-black font-medium"
                       : isDarkMode
                       ? "text-white/50 hover:text-white/80"
-                      : "text-black/50 hover:text-black/80"
+                      : "text-black/60 hover:text-black/90"
                   }`}
                 >
                   {item.title}
@@ -283,13 +283,13 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
     <>
       <h2 id="hidden-infrastructure-problem">The Hidden Infrastructure Problem</h2>
       <p>
-        Think about what happens when you click &quot;Buy Now&quot; on a website. Your browser sends a request to a web server, which talks to a payment processor, which communicates with your bank, which approves the transaction, and confirmation ripples back through the entire chain—all in under two seconds. This seemingly simple action relies on decades of infrastructure development: compilers that translate high-level code to machine instructions, operating systems that manage resources, and networking protocols that route data across continents.
+        Think about what happens when you click &quot;Buy Now&quot; on a website. Your browser sends a request to a web server. That server talks to a payment processor, which communicates with your bank, which approves the transaction, and the confirmation ripples back through the entire chain in under two seconds. This seemingly simple action relies on decades of infrastructure: compilers that translate high-level code into machine instructions, operating systems that manage resources, and networking protocols that route data across continents.
       </p>
       <p>
         Now here&apos;s an uncomfortable truth: <strong>none of this infrastructure exists for quantum computers</strong>.
       </p>
       <p>
-        The quantum computing industry loves to announce that &quot;useful quantum computing is X years away,&quot; but rarely discusses the enormous software stack that classical computers take for granted. Consider what happens when you run a program on your laptop. Your Python code compiles to bytecode, which gets translated to assembly, which becomes machine code, which then—and this is the part we rarely think about—must be <em>routed</em> through billions of transistors. Which transistors execute which operations? How do signals flow between them? These problems were solved for classical computers long ago.
+        The quantum computing industry loves to announce that &quot;useful quantum computing is X years away,&quot; but rarely discusses the enormous software stack that classical computers take for granted. Consider what happens when you run a program on your laptop. Your Python code compiles to bytecode, which is translated to assembly and then to machine code. From there, the work must be <em>routed</em> through billions of transistors. Which transistors execute which operations? How do signals flow between them? These problems were solved for classical computers long ago.
       </p>
       <p>
         For quantum computers? We&apos;re still figuring it out.
@@ -303,7 +303,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         This is hard for three reasons:
       </p>
       <p>
-        <strong>1. Limited Connectivity</strong>: Unlike classical bits that can interact with any other bit through software routing, physical qubits can only directly interact with their neighbors. On IBM&apos;s superconducting quantum processors, each qubit typically connects to only 2-4 other qubits. If your algorithm needs qubits 0 and 15 to interact but they&apos;re not neighbors, you must &quot;teleport&quot; the quantum information through intermediate qubits using SWAP operations—and each SWAP introduces errors.
+        <strong>1. Limited Connectivity</strong>: Unlike classical bits that can interact with any other bit through software routing, physical qubits can only directly interact with their neighbors. On IBM&apos;s superconducting quantum processors, each qubit typically connects to only 2-4 other qubits. If your algorithm needs qubits 0 and 15 to interact but they&apos;re not neighbors, you must &quot;teleport&quot; the quantum information through intermediate qubits using SWAP operations. Each SWAP introduces errors.
       </p>
 
       <div className="my-12">
@@ -335,7 +335,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         SABRE works reasonably well, and it&apos;s what Qiskit uses under the hood. But it has a fundamental blind spot: <strong>it optimizes for the wrong objective</strong>.
       </p>
       <p>
-        When SABRE minimizes SWAP count, it&apos;s treating SWAPs as the enemy. But SWAPs aren&apos;t inherently bad—<em>errors</em> are bad. And here&apos;s the key insight: <strong>a single SWAP through a noisy edge can be worse than three SWAPs through pristine edges</strong>.
+        When SABRE minimizes SWAP count, it&apos;s treating SWAPs as the enemy. But SWAPs aren&apos;t inherently the enemy. <em>Errors</em> are. And here&apos;s the key insight: <strong>a single SWAP through a noisy edge can be worse than three SWAPs through pristine edges</strong>.
       </p>
 
       <div className="my-12">
@@ -351,25 +351,22 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         At Conductor, we built NACRE (Noise-Aware Circuit Routing Engine) to optimize for the metric that actually determines whether your quantum computation succeeds: <strong>fidelity</strong>.
       </p>
       <p>
-        The goal isn&apos;t to minimize SWAPs—it&apos;s to maximize the probability that your quantum state survives the computation intact. Sometimes that means fewer SWAPs. Sometimes it means <em>more</em> SWAPs, if those SWAPs traverse higher-quality hardware. NACRE makes this tradeoff intelligently.
+        The goal isn&apos;t to minimize SWAPs. It&apos;s to maximize the probability that your quantum state survives the computation intact. Sometimes that means fewer SWAPs. Sometimes it means <em>more</em> SWAPs, if those SWAPs traverse higher-quality hardware. NACRE makes this tradeoff intelligently.
       </p>
       <p>
         The key insight is to replace hop count with a noise-aware distance metric:
       </p>
-      <CodeBlock
-        isDarkMode={isDarkMode}
-        language="python"
-        code={`# SABRE approach
-distance(q1, q2) = number_of_edges_in_shortest_path
-# Implicit goal: minimize total SWAPs
-
-# NACRE approach  
-edge_weight(q1, q2) = -log(fidelity[q1, q2])
-distance(q1, q2) = sum_of_edge_weights_along_optimal_path
-# Explicit goal: maximize circuit fidelity`}
-      />
       <p>
-        Using the negative logarithm of fidelity is mathematically elegant: it converts multiplicative fidelity (<InlineMath>{String.raw`F_{\text{total}} = F_1 \times F_2 \times F_3`}</InlineMath>) into additive distance (<InlineMath>{String.raw`d_{\text{total}} = d_1 + d_2 + d_3`}</InlineMath>), allowing us to use standard shortest-path algorithms like Dijkstra&apos;s. A path through three 99% fidelity gates (<InlineMath>{String.raw`-\log(0.99^3) = 0.030`}</InlineMath>) is now correctly ranked worse than a path through two 99.5% fidelity gates (<InlineMath>{String.raw`-\log(0.995^2) = 0.010`}</InlineMath>)—even though the latter has fewer hops.
+        <strong>SABRE approach:</strong>
+      </p>
+      <Math>{String.raw`d(q_1, q_2) = \text{number of edges in shortest path}`}</Math>
+      <p>
+        <strong>NACRE approach:</strong>
+      </p>
+      <Math>{String.raw`w(q_1, q_2) = -\log\bigl(F_{q_1, q_2}\bigr)`}</Math>
+      <Math>{String.raw`d(q_1, q_2) = \sum_{\text{edges in path}} w(q_i, q_{i+1})`}</Math>
+      <p>
+        Using the negative logarithm of fidelity is mathematically elegant: it converts multiplicative fidelity (<InlineMath>{String.raw`F_{\text{total}} = F_1 \times F_2 \times F_3`}</InlineMath>) into additive distance (<InlineMath>{String.raw`d_{\text{total}} = d_1 + d_2 + d_3`}</InlineMath>), allowing us to use standard shortest-path algorithms like Dijkstra&apos;s. A path through three 99% fidelity gates (<InlineMath>{String.raw`-\log(0.99^3) = 0.030`}</InlineMath>) is now correctly ranked worse than a path through two 99.5% fidelity gates (<InlineMath>{String.raw`-\log(0.995^2) = 0.010`}</InlineMath>), even though the latter has fewer hops.
       </p>
 
       <div className="my-12">
@@ -387,14 +384,16 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
 
       <h3 id="six-component-cost-function">The Six-Component Cost Function</h3>
       <p>
-        When NACRE must decide which SWAP to insert, it evaluates candidates using six factors—all oriented toward maximizing fidelity:
+        When NACRE must decide which SWAP to insert, it evaluates candidates using six factors, all aimed at maximizing fidelity:
       </p>
-      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
+      <div
+        className={`overflow-x-auto my-4 rounded border ${isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
-              <th className="text-left p-3 font-medium">Component</th>
-              <th className="text-left p-3 font-medium">What It Measures</th>
+              <th className="text-left p-3 font-semibold">Component</th>
+              <th className="text-left p-3 font-semibold">What It Measures</th>
             </tr>
           </thead>
           <tbody>
@@ -454,15 +453,15 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
       </div>
 
       <p>
-        <strong>The fidelity improvement is the headline result.</strong> The average {benchmarkStats.regimeGains.good}% improvement in estimated fidelity (on &quot;good&quot; 95-99% devices) might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity—nearly doubling your success rate.
+        <strong>The fidelity improvement is the headline result.</strong> The average {benchmarkStats.regimeGains.good}% improvement in estimated fidelity (on &quot;good&quot; 95-99% devices) might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity, nearly doubling your success rate.
       </p>
 
       <h3 id="fidelity-vs-swap-tradeoff">The Fidelity vs SWAP Tradeoff</h3>
       <p>
-        A key finding: <strong>NACRE sometimes uses slightly more SWAPs than SABRE, yet achieves significantly higher fidelity</strong>. This is by design. For example, the QFT-4 circuit shows NACRE using an average of 2.1 SWAPs versus SABRE&apos;s 2.0, but achieving a +{benchmarkStats.maxGainCircuitNoisy.fidGain.toFixed(1)}% fidelity improvement in the noisy regime.
+        A key finding: <strong>NACRE sometimes uses slightly more SWAPs than SABRE, yet achieves significantly higher fidelity</strong>. This is by design. For example, the QFT-4 circuit shows NACRE using an average of 2.1 SWAPs versus SABRE&apos;s 2.0, but achieving a +13.8% fidelity improvement in the good regime.
       </p>
       <p>
-        Consider why this happens: when your circuit needs to route quantum information from qubit A to qubit B, SABRE finds the shortest path—two hops through qubit C. But what if the A-C edge has 90% fidelity while a three-hop path through D and E has 99% fidelity on each edge?
+        Consider why this happens: when your circuit needs to route quantum information from qubit A to qubit B, SABRE finds the shortest path: two hops through qubit C. But what if the A-C edge has 90% fidelity while a three-hop path through D and E has 99% fidelity on each edge?
       </p>
       <ul>
         <li><strong>SABRE&apos;s 2-hop path</strong>: <InlineMath>{String.raw`0.90 \times 0.90 = 81\%`}</InlineMath> fidelity</li>
@@ -487,33 +486,35 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
       <p>
         Our benchmarks reveal a nuanced picture of when NACRE helps most. We tested across three fidelity regimes:
       </p>
-      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
+      <div
+        className={`overflow-x-auto my-4 rounded border ${isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
-              <th className="text-left p-3 font-medium">Fidelity Regime</th>
-              <th className="text-left p-3 font-medium">Gate Fidelity Range</th>
-              <th className="text-left p-3 font-medium">NACRE Advantage</th>
-              <th className="text-left p-3 font-medium">Representative Hardware</th>
+              <th className="text-left p-3 font-semibold">Fidelity Regime</th>
+              <th className="text-left p-3 font-semibold">Gate Fidelity Range</th>
+              <th className="text-left p-3 font-semibold">NACRE Advantage</th>
+              <th className="text-left p-3 font-semibold">Representative Hardware</th>
             </tr>
           </thead>
           <tbody>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Noisy</td>
               <td className="p-3 opacity-75">90-99%</td>
-              <td className="p-3 text-green-600">+{benchmarkStats.regimeGains.noisy}% avg</td>
+              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.noisy}% avg</td>
               <td className="p-3 opacity-75">Older/degraded devices</td>
             </tr>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Good</td>
               <td className="p-3 opacity-75">95-99%</td>
-              <td className="p-3 text-green-600">+{benchmarkStats.regimeGains.good}% avg</td>
+              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.good}% avg</td>
               <td className="p-3 opacity-75">Current superconducting</td>
             </tr>
             <tr>
               <td className="p-3 font-medium">Excellent</td>
               <td className="p-3 opacity-75">99-99.9%</td>
-              <td className="p-3 text-green-600">+{benchmarkStats.regimeGains.excellent}% avg</td>
+              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.excellent}% avg</td>
               <td className="p-3 opacity-75">High-quality/trapped-ion</td>
             </tr>
           </tbody>
@@ -535,7 +536,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         The entire purpose of quantum error correction is to encode logical qubits such that logical operations have near-perfect, <em>uniform</em> fidelity. This eliminates the variance that NACRE exploits. When all paths are equivalent, SWAP minimization (what SABRE does) becomes the right objective again.
       </p>
       <p>
-        NACRE&apos;s architecture is designed with this evolution in mind. Today, it exploits fidelity variance to find high-quality paths on NISQ hardware. As QPUs become fault-tolerant and gate fidelities become uniform, we will evolve NACRE to shift its optimization focus toward minimizing circuit depth and gate overhead—the metrics that matter most when errors are correctable. This adaptive means NACRE maximizes fidelity for today&apos;s noisy hardware while positioning itself for tomorrow&apos;s fault-tolerant systems.
+        NACRE&apos;s architecture is designed with this evolution in mind. Today, it exploits fidelity variance to find high-quality paths on NISQ hardware. As QPUs become fault-tolerant and gate fidelities become uniform, we will evolve NACRE to shift its optimization focus toward minimizing circuit depth and gate overhead, the metrics that matter most when errors are correctable. This adaptability means NACRE maximizes fidelity for today&apos;s noisy hardware while positioning itself for tomorrow&apos;s fault-tolerant systems.
       </p>
     
 
@@ -546,18 +547,20 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         NACRE represents a philosophical shift in quantum circuit compilation. Traditional routers inherited the classical computing mindset: operations are reliable, so minimize their count. But quantum operations are probabilistic. Every gate, every SWAP, every microsecond of waiting introduces some probability of error.
       </p>
       <p>
-        The right objective function isn&apos;t &quot;minimize operations&quot;—it&apos;s &quot;maximize the probability that this computation returns the correct answer.&quot; NACRE is a production routing engine built around this principle.
+        The right objective function isn&apos;t &quot;minimize operations&quot;; it&apos;s &quot;maximize the probability that this computation returns the correct answer.&quot; NACRE is a production routing engine built around this principle.
       </p>
       <p>
-        As quantum processors scale from hundreds to thousands of qubits, and as error correction becomes practical, the routing problem will evolve. But the core principle—<strong>optimize for fidelity, not for proxy metrics</strong>—will remain essential. Today&apos;s NISQ devices are teaching us how to work with imperfect quantum systems, and that knowledge will carry forward into the fault-tolerant era.
+        As quantum processors scale from hundreds to thousands of qubits, and as error correction becomes practical, the routing problem will evolve. But the core principle remains essential: <strong>optimize for fidelity, not for proxy metrics</strong>. Today&apos;s NISQ devices are teaching us how to work with imperfect quantum systems, and that knowledge will carry forward into the fault-tolerant era.
       </p>
 
-      <div className={`mt-12 p-6 rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+      <div
+        className={`mt-12 p-6 rounded-lg border ${isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}
+      >
         <p className="font-medium mb-2">
           NACRE is available now in <a href="https://coda.conductorquantum.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">Coda</a>, automatically optimizing your quantum circuits for maximum fidelity on the specific hardware they&apos;ll run on.
         </p>
         <p className="text-sm opacity-75">
-          No configuration required—just submit your circuit and let the routing engine find the highest-fidelity path.
+          No configuration required. Submit your circuit and let the routing engine find the highest-fidelity path.
         </p>
       </div>
     </>
@@ -614,7 +617,7 @@ export default function BlogPostPage() {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+    <div className={`min-h-screen ${isDarkMode ? "dark bg-black text-white" : "bg-white text-black"}`}>
       {/* Mobile TOC Drawer */}
       {post.toc && post.toc.length > 0 && (
         <MobileTableOfContents
@@ -776,7 +779,7 @@ export default function BlogPostPage() {
                     }
                   }
                   div :global(strong) {
-                    font-weight: 600;
+                    font-weight: 500;
                   }
                   div :global(em) {
                     font-style: italic;
@@ -797,7 +800,7 @@ export default function BlogPostPage() {
         </div>
 
         {/* Footer Links Section */}
-        <div className="mt-auto pt-6 sm:pt-8 pb-4 border-t border-current/10">
+        <div className="mt-auto pt-6 sm:pt-8 pb-4">
           <div className="flex flex-wrap gap-3 sm:gap-4 text-sm">
             <Link href="/" className="hover:opacity-70">Home</Link>
             <Link href="/blog" className="hover:opacity-70">Blog</Link>

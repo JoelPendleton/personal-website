@@ -40,17 +40,19 @@ const getMutedColors = (isDarkMode: boolean) => ({
   // Text colors - neutral grays
   textPrimary: isDarkMode ? "#e5e5e5" : "#171717",
   textSecondary: isDarkMode ? "#a3a3a3" : "#525252",
-  textMuted: isDarkMode ? "#737373" : "#737373",
+  // In light mode we keep "muted" text a bit darker for legibility on white.
+  textMuted: isDarkMode ? "#737373" : "#525252",
   // Stroke colors - neutral grays
   strokePrimary: isDarkMode ? "#d4d4d4" : "#262626",
-  strokeSecondary: isDarkMode ? "#737373" : "#a3a3a3",
-  strokeMuted: isDarkMode ? "#525252" : "#d4d4d4",
+  // In light mode we avoid very pale strokes that disappear.
+  strokeSecondary: isDarkMode ? "#737373" : "#737373",
+  strokeMuted: isDarkMode ? "#525252" : "#a3a3a3",
   // Background colors - matches bg-white/5 on black for tables/code blocks
   bgSubtle: isDarkMode ? "#0d0d0d" : "#f5f5f5",
   bgMuted: isDarkMode ? "#1a1a1a" : "#e8e8e8",
   // Inactive/grayed elements
-  nodeInactive: isDarkMode ? "#404040" : "#a3a3a3",
-  edgeInactive: isDarkMode ? "#3a3a3a" : "#c4c4c4",
+  nodeInactive: isDarkMode ? "#525252" : "#a3a3a3",
+  edgeInactive: isDarkMode ? "#525252" : "#a3a3a3",
 })
 
 // Get quality color using four distinct colors: red, amber, yellow, green
@@ -73,16 +75,10 @@ function getQualityColor(quality: number): string {
 
 // Get quality color for non-hovered states
 // Uses the same vibrant colors - hover state differentiates via size/stroke
-function getMutedQualityColor(quality: number, _isDarkMode: boolean): string {
+function getMutedQualityColor(quality: number): string {
   // Just use the same vibrant colors as getQualityColor
   // The hover state adds visual emphasis through size changes
   return getQualityColor(quality)
-}
-
-// Determine if text should be dark or light based on quality
-// All quality colors are bright enough to need dark text
-function getTextColorForQuality(_quality: number): string {
-  return "#000"
 }
 
 // ============================================
@@ -93,15 +89,22 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
   const muted = getMutedColors(isDarkMode)
 
   return (
-    <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
+    <div
+      className={`rounded-lg border ${isDarkMode ? "border-white/10" : "border-black/10"}`}
+      style={{ backgroundColor: muted.bgSubtle }}
+    >
       <div className="px-4 sm:px-6 py-5">
         <div className="flex flex-col items-center gap-4 sm:gap-6">
-          <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center overflow-x-auto max-w-full">
-            <svg className="w-[100px] sm:w-[140px] h-auto flex-shrink-0" viewBox="0 0 140 80">
+          <div className="flex items-center gap-3 sm:gap-6 flex-wrap justify-center overflow-x-auto max-w-full min-h-[80px]">
+            <svg
+              className="w-[100px] sm:w-[140px] h-auto flex-shrink-0"
+              viewBox="0 0 140 80"
+              overflow="visible"
+            >
               <line x1="20" y1="25" x2="120" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
               <line x1="20" y1="55" x2="120" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
-              <text x="12" y="29" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₁</text>
-              <text x="12" y="59" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₂</text>
+              <text x="18" y="29" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₁</text>
+              <text x="18" y="59" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₂</text>
               <line x1="65" y1="20" x2="75" y2="30" stroke={muted.strokePrimary} strokeWidth="1.5" />
               <line x1="75" y1="20" x2="65" y2="30" stroke={muted.strokePrimary} strokeWidth="1.5" />
               <line x1="65" y1="50" x2="75" y2="60" stroke={muted.strokePrimary} strokeWidth="1.5" />
@@ -111,28 +114,29 @@ export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
             
             <span className="text-lg sm:text-xl flex-shrink-0" style={{ color: muted.textMuted }}>=</span>
             
-            <svg className={`h-auto flex-shrink-0 transition-all duration-300 ${showDecomposition ? "w-[200px] sm:w-[300px]" : "w-[100px] sm:w-[140px]"}`} viewBox={showDecomposition ? "0 0 300 80" : "0 0 140 80"}>
-              <line x1="20" y1="25" x2={showDecomposition ? "280" : "120"} y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
-              <line x1="20" y1="55" x2={showDecomposition ? "280" : "120"} y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
-              {showDecomposition ? (
-                <>
-                  <circle cx="70" cy="55" r="4" fill={muted.strokePrimary} />
-                  <line x1="70" y1="55" x2="70" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <circle cx="70" cy="25" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <line x1="70" y1="17" x2="70" y2="33" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <circle cx="150" cy="25" r="4" fill={muted.strokePrimary} />
-                  <line x1="150" y1="25" x2="150" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <circle cx="150" cy="55" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <line x1="150" y1="47" x2="150" y2="63" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <circle cx="230" cy="55" r="4" fill={muted.strokePrimary} />
-                  <line x1="230" y1="55" x2="230" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <circle cx="230" cy="25" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
-                  <line x1="230" y1="17" x2="230" y2="33" stroke={muted.strokePrimary} strokeWidth="1" />
-                </>
-              ) : (
+            <div className={`flex-shrink-0 flex items-center h-[57px] sm:h-[80px] transition-[width] duration-300 ${showDecomposition ? "w-[200px] sm:w-[300px]" : "w-[100px] sm:w-[140px]"}`}>
+              <svg className="w-full h-auto" viewBox="0 0 140 80" style={{ display: showDecomposition ? 'none' : 'block' }}>
+                <line x1="20" y1="25" x2="120" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+                <line x1="20" y1="55" x2="120" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
                 <text x="70" y="44" fill={muted.strokeSecondary} fontSize="13" textAnchor="middle" fontFamily="monospace">3 × CNOT</text>
-              )}
-            </svg>
+              </svg>
+              <svg className="w-full h-auto" viewBox="0 0 300 80" style={{ display: showDecomposition ? 'block' : 'none' }}>
+                <line x1="20" y1="25" x2="280" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+                <line x1="20" y1="55" x2="280" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
+                <circle cx="70" cy="55" r="4" fill={muted.strokePrimary} />
+                <line x1="70" y1="55" x2="70" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+                <circle cx="70" cy="25" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
+                <line x1="70" y1="17" x2="70" y2="33" stroke={muted.strokePrimary} strokeWidth="1" />
+                <circle cx="150" cy="25" r="4" fill={muted.strokePrimary} />
+                <line x1="150" y1="25" x2="150" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
+                <circle cx="150" cy="55" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
+                <line x1="150" y1="47" x2="150" y2="63" stroke={muted.strokePrimary} strokeWidth="1" />
+                <circle cx="230" cy="55" r="4" fill={muted.strokePrimary} />
+                <line x1="230" y1="55" x2="230" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+                <circle cx="230" cy="25" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
+                <line x1="230" y1="17" x2="230" y2="33" stroke={muted.strokePrimary} strokeWidth="1" />
+              </svg>
+            </div>
           </div>
           
           <Button
@@ -264,7 +268,10 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
+      <div
+        className={`rounded-lg border ${isDarkMode ? "border-white/10" : "border-black/10"}`}
+        style={{ backgroundColor: muted.bgSubtle }}
+      >
         <div className="p-4 sm:p-6 overflow-x-auto">
           <svg className="w-full max-w-[310px] h-auto mx-auto" viewBox="0 0 310 170">
             {TOPOLOGY_EDGES.map((edge, i) => {
@@ -276,7 +283,7 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
                 ? colors.accent 
                 : isHovered 
                   ? getQualityColor(edge.quality) 
-                  : getMutedQualityColor(edge.quality, isDarkMode)
+                  : getMutedQualityColor(edge.quality)
               return (
                 <Tooltip key={i}>
                   <TooltipTrigger asChild>
@@ -308,7 +315,7 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
                 ? colors.accent 
                 : isHovered 
                   ? getQualityColor(qubit.quality) 
-                  : getMutedQualityColor(qubit.quality, isDarkMode)
+                  : getMutedQualityColor(qubit.quality)
               return (
                 <Tooltip key={qubit.id}>
                   <TooltipTrigger asChild>
@@ -326,7 +333,9 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
                         x={qubit.x}
                         y={qubit.y + 4}
                         textAnchor="middle"
-                        fill={isSelected ? "#000" : getTextColorForQuality(qubit.quality)}
+                        // Match the container background so node labels don't visually compete
+                        // with topology coloring (and remain consistent across all topologies).
+                        fill={muted.bgSubtle}
                         fontSize="10"
                         fontWeight="500"
                         fontFamily="monospace"
@@ -484,7 +493,9 @@ function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: n
               x={qubit.x}
               y={qubit.y + 4}
               textAnchor="middle"
-              fill={isSelected ? "#000" : muted.textMuted}
+              // Match the container background so node labels don't visually compete
+              // with topology coloring (and remain consistent across all topologies).
+              fill={muted.bgSubtle}
               fontSize="12"
               fontWeight={isSelected ? "600" : "normal"}
               fontFamily="monospace"
@@ -523,7 +534,10 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
   ]
 
   return (
-    <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
+    <div
+      className={`rounded-lg border ${isDarkMode ? "border-white/10" : "border-black/10"}`}
+      style={{ backgroundColor: muted.bgSubtle }}
+    >
       <div className="p-4 sm:p-6">
         <div className="mb-4 sm:mb-6 overflow-x-auto">
           <p className="text-xs uppercase tracking-wider mb-3" style={{ color: muted.textMuted }}>Input circuit</p>
@@ -604,7 +618,10 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
   }
 
   return (
-    <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
+    <div
+      className={`rounded-lg border ${isDarkMode ? "border-white/10" : "border-black/10"}`}
+      style={{ backgroundColor: muted.bgSubtle }}
+    >
       <div className="p-4 sm:p-6">
         <p className="text-xs sm:text-sm mb-4 sm:mb-5" style={{ color: muted.textSecondary }}>
           Moving state from <span className="font-mono" style={{ color: colors.accent }}>Q0</span> to <span className="font-mono" style={{ color: colors.accent }}>Q5</span>
@@ -664,7 +681,9 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                     x={q.x} 
                     y={q.y + 4} 
                     textAnchor="middle" 
-                    fill={isEndpoint ? "#000" : (onPath ? getTextColorForQuality(nodeQuality) : "#fff")}
+                    // Match the container background so node labels don't visually compete
+                    // with topology coloring (and remain consistent across all topologies).
+                    fill={muted.bgSubtle}
                     fontSize="10" 
                     fontWeight="500"
                     fontFamily="monospace"
@@ -735,7 +754,10 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
   const sliderTrack = muted.strokeMuted
 
   return (
-    <div className="rounded-lg not-prose" style={{ backgroundColor: muted.bgSubtle }}>
+    <div
+      className={`rounded-lg not-prose border ${isDarkMode ? "border-white/10" : "border-black/10"}`}
+      style={{ backgroundColor: muted.bgSubtle }}
+    >
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-5">
         <div className="space-y-4">
           <div>
@@ -823,7 +845,10 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
   }, [steps.length, isPlaying])
 
   return (
-    <div className="rounded-lg not-prose" style={{ backgroundColor: muted.bgSubtle }}>
+    <div
+      className={`rounded-lg not-prose border ${isDarkMode ? "border-white/10" : "border-black/10"}`}
+      style={{ backgroundColor: muted.bgSubtle }}
+    >
       <div className="p-4 sm:p-6 overflow-x-auto">
         <svg className="w-full min-w-[400px] h-[60px]" viewBox="0 0 480 60" preserveAspectRatio="xMidYMid meet">
           <line x1="50" y1="30" x2="460" y2="30" stroke={muted.strokeMuted} strokeWidth="1" />
