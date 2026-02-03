@@ -155,12 +155,12 @@ function calculateStdGain(data: typeof benchmarkDataNoisy) {
 import twColors from "tailwindcss/colors"
 
 const tailwindColors = {
-  green: twColors.green[500],
-  red: twColors.red[500],
-  yellow: twColors.yellow[500],
-  amber: twColors.amber[500],
-  blue: twColors.blue[500],
-  gray: twColors.gray[500],
+  green: twColors.green[600],
+  red: twColors.red[600],
+  yellow: twColors.yellow[600],
+  amber: twColors.amber[600],
+  blue: twColors.blue[600],
+  gray: twColors.gray[600],
 }
 
 // Regime comparison data - computed from actual benchmark data

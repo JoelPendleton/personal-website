@@ -501,19 +501,19 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Noisy</td>
               <td className="p-3 opacity-75">90-99%</td>
-              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.noisy}% avg</td>
+              <td className="p-3 text-green-600">+{benchmarkStats.regimeGains.noisy}% avg</td>
               <td className="p-3 opacity-75">Older/degraded devices</td>
             </tr>
             <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
               <td className="p-3 font-medium">Good</td>
               <td className="p-3 opacity-75">95-99%</td>
-              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.good}% avg</td>
+              <td className="p-3 text-green-600">+{benchmarkStats.regimeGains.good}% avg</td>
               <td className="p-3 opacity-75">Current superconducting</td>
             </tr>
             <tr>
               <td className="p-3 font-medium">Excellent</td>
               <td className="p-3 opacity-75">99-99.9%</td>
-              <td className="p-3 text-green-500">+{benchmarkStats.regimeGains.excellent}% avg</td>
+              <td className="p-3 text-green-600">+{benchmarkStats.regimeGains.excellent}% avg</td>
               <td className="p-3 opacity-75">High-quality/trapped-ion</td>
             </tr>
           </tbody>
@@ -552,7 +552,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         As quantum processors scale from hundreds to thousands of qubits, and as error correction becomes practical, the routing problem will evolve. But the core principle—<strong>optimize for fidelity, not for proxy metrics</strong>—will remain essential. Today&apos;s NISQ devices are teaching us how to work with imperfect quantum systems, and that knowledge will carry forward into the fault-tolerant era.
       </p>
 
-      <div className={`mt-12 p-6 rounded-lg ${isDarkMode ? "bg-blue-500/10 border border-blue-500/20" : "bg-blue-500/10 border border-blue-500/30"}`}>
+      <div className={`mt-12 p-6 rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
         <p className="font-medium mb-2">
           NACRE is available now in <a href="https://coda.conductorquantum.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">Coda</a>, automatically optimizing your quantum circuits for maximum fidelity on the specific hardware they&apos;ll run on.
         </p>
