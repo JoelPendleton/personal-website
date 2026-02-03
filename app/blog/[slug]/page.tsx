@@ -251,16 +251,12 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
 
       <div className={`mt-12 p-6 rounded-lg ${isDarkMode ? "bg-blue-500/10 border border-blue-500/20" : "bg-blue-500/10 border border-blue-500/30"}`}>
         <p className="font-medium mb-2">
-          NACRE is available now in the Conductor platform, automatically optimizing your quantum circuits for maximum fidelity on the specific hardware they&apos;ll run on.
+          NACRE is available now in <a href="https://coda.conductorquantum.com" target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">Coda</a>, automatically optimizing your quantum circuits for maximum fidelity on the specific hardware they&apos;ll run on.
         </p>
         <p className="text-sm opacity-75">
           No configuration required—just submit your circuit and let the routing engine find the highest-fidelity path.
         </p>
       </div>
-
-      <p className="text-sm opacity-50 mt-8">
-        <em>Technical details: NACRE is implemented in Python with full Qiskit integration. Configuration options include presets for fidelity-optimized, balanced, and SWAP-efficient routing. The algorithm supports arbitrary device topologies (line, grid, heavy-hex, and custom) and accepts calibration data in standard formats or pulls live calibration from IBM Quantum backends.</em>
-      </p>
     </>
   )
 }
@@ -273,102 +269,12 @@ const blogPosts: Record<string, {
   hasInteractiveContent?: boolean
 }> = {
   "circuit-matching-problem": {
-    title: "The Circuit Matching Problem: Why Your Quantum Computer Needs a Noise-Aware GPS",
+    title: "Noise-Aware Circuit Matching: A GPS for Quantum Hardware",
     date: "2026-01-30",
     content: (isDarkMode: boolean) => <CircuitMatchingContent isDarkMode={isDarkMode} />,
     hasInteractiveContent: true,
   },
-  "building-quantum-computers-on-silicon": {
-    title: "Building Quantum Computers on Silicon",
-    date: "2025-12-15",
-    content: (
-      <>
-        <p>
-          At Conductor Quantum, we&apos;re taking a different approach to building quantum computers. Rather than pursuing exotic materials or complex fabrication processes, we&apos;re leveraging the incredible precision and scale of silicon manufacturing—the same technology that powers every smartphone and computer today.
-        </p>
-        <h2>Why Silicon?</h2>
-        <p>
-          The semiconductor industry has spent decades perfecting silicon fabrication. Modern fabs can create structures with atomic precision, and the infrastructure to manufacture billions of transistors already exists. By building our qubits in silicon, we can tap into this existing ecosystem rather than building everything from scratch.
-        </p>
-        <p>
-          Silicon spin qubits also have some inherent advantages. They&apos;re incredibly small—thousands of times smaller than superconducting qubits—which means we can fit more of them on a chip. And because they operate on the same principles as classical transistors, there&apos;s a natural path to integrating quantum and classical computing on the same substrate.
-        </p>
-        <h2>The Challenges</h2>
-        <p>
-          Of course, nothing worth doing is easy. Silicon qubits need to operate at extremely low temperatures—just a few millikelvin above absolute zero. We need precise control over individual electrons, and we need to connect thousands of qubits while maintaining their quantum properties.
-        </p>
-        <p>
-          These are hard problems, but they&apos;re engineering problems. And that&apos;s what gets us excited. We&apos;re not waiting for fundamental physics breakthroughs—we&apos;re applying what we know to build something that works.
-        </p>
-        <h2>What&apos;s Next</h2>
-        <p>
-          We&apos;re still in the early days, but the progress has been encouraging. Our team is focused on demonstrating the key building blocks and proving that our approach can scale. The quantum computing industry is moving fast, and we&apos;re working hard to make silicon a serious contender in this race.
-        </p>
-      </>
-    ),
-  },
-  "lessons-from-yc-s24": {
-    title: "Lessons from Y Combinator S24",
-    date: "2025-10-20",
-    content: (
-      <>
-        <p>
-          Going through Y Combinator&apos;s Summer 2024 batch was one of the most intense and valuable experiences of my career. Here are some of the key lessons that stuck with me.
-        </p>
-        <h2>Talk to Users (Even in Deep Tech)</h2>
-        <p>
-          The YC mantra of &quot;talk to users&quot; might seem less applicable to a company building quantum computers—after all, our end users are years away from interacting with our technology. But we learned that talking to potential customers, partners, and experts in adjacent fields was just as valuable. Understanding their problems shaped our roadmap in ways we didn&apos;t expect.
-        </p>
-        <h2>Speed Matters</h2>
-        <p>
-          In deep tech, it&apos;s easy to fall into the trap of perfectionism. We want to fully understand a problem before moving forward. YC pushed us to move faster, to make decisions with incomplete information, and to learn from mistakes rather than trying to avoid them entirely.
-        </p>
-        <p>
-          This doesn&apos;t mean being reckless with the physics—the laws of nature don&apos;t care about your timeline. But it does mean being ruthless about prioritization and not letting secondary concerns slow down the critical path.
-        </p>
-        <h2>Fundraising is a Means, Not an End</h2>
-        <p>
-          Demo Day was exciting, but the real measure of success is what happens after. The connections and credibility from YC opened doors, but we still had to walk through them and prove ourselves. Every conversation came back to: what have you built, and what&apos;s your plan?
-        </p>
-        <h2>The Batch is the Product</h2>
-        <p>
-          The other founders in our batch were incredible. Late nights, shared struggles, celebrating wins together—these relationships became as valuable as any advice from partners. Building a company is lonely, and having a cohort going through the same thing makes a real difference.
-        </p>
-      </>
-    ),
-  },
-  "from-physics-to-founder": {
-    title: "From Physics to Founder",
-    date: "2025-08-05",
-    content: (
-      <>
-        <p>
-          When I started studying physics at UCL, I didn&apos;t imagine I&apos;d end up co-founding companies. The path from physics student to startup founder wasn&apos;t planned—it emerged from a series of decisions that each seemed obvious at the time.
-        </p>
-        <h2>Falling in Love with Quantum</h2>
-        <p>
-          My first exposure to quantum computing came through internships at Quantum Motion. Seeing the gap between theoretical promise and practical implementation was eye-opening. The field was full of unsolved problems, and the solutions would require new ideas, not just incremental improvements.
-        </p>
-        <p>
-          After working at several quantum companies—C12, QuantrolOx, and others—I started to see patterns. Common challenges that everyone faced. Opportunities that weren&apos;t being pursued. And eventually, the conviction that we could do something about it.
-        </p>
-        <h2>The Decision to Start</h2>
-        <p>
-          Starting a company while pursuing a DPhil at Oxford wasn&apos;t the conventional path. But the opportunity felt right. We had a technical insight, a team that worked well together, and a window of time when the field was ripe for new approaches.
-        </p>
-        <p>
-          The transition from researcher to founder was harder than expected. Research rewards depth and completeness; startups reward speed and iteration. Learning to make decisions with incomplete information, to prioritize ruthlessly, to build rather than analyze—these were new skills.
-        </p>
-        <h2>What Physics Taught Me</h2>
-        <p>
-          Despite the differences, my physics background has been invaluable. The ability to model complex systems, to identify what&apos;s first-order important, to be comfortable with uncertainty—these translate directly to building a company in a technical field.
-        </p>
-        <p>
-          Most importantly, physics taught me that hard problems are solvable. Not by hoping or wishing, but by systematic effort and clear thinking. That mindset is what keeps us going when progress is slow and the challenges seem insurmountable.
-        </p>
-      </>
-    ),
-  },
+
 }
 
 function formatDate(dateString: string): string {

@@ -1,19 +1,94 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 
-// Design tokens matching the site
+// ==============================================
+// Unified color palette matching the site style
+// ==============================================
+
+// Core semantic colors - consistent throughout
 const colors = {
+  // Blue accent - matches homepage exactly
   accent: "hsl(220, 100%, 70%)",
-  good: "hsl(142, 70%, 45%)",
-  bad: "hsl(0, 70%, 50%)",
+  // Quality spectrum (red → orange → yellow → green)
+  red: "hsl(0, 72%, 51%)",      // Bad/low fidelity
+  orange: "hsl(25, 95%, 53%)",  // Poor fidelity  
+  yellow: "hsl(45, 93%, 47%)",  // Medium fidelity
+  green: "hsl(142, 71%, 45%)",  // Good/high fidelity
+  // Aliases for semantic use
+  good: "hsl(142, 71%, 45%)",
+  bad: "hsl(0, 72%, 51%)",
 }
 
-// Get quality color from red (bad) to green (good)
+// Muted colors for dark/light mode (replacing transparency)
+const getMutedColors = (isDarkMode: boolean) => ({
+  // Text colors - neutral grays
+  textPrimary: isDarkMode ? "#e5e5e5" : "#171717",
+  textSecondary: isDarkMode ? "#a3a3a3" : "#525252",
+  textMuted: isDarkMode ? "#737373" : "#737373",
+  // Stroke colors - neutral grays
+  strokePrimary: isDarkMode ? "#d4d4d4" : "#262626",
+  strokeSecondary: isDarkMode ? "#737373" : "#a3a3a3",
+  strokeMuted: isDarkMode ? "#525252" : "#d4d4d4",
+  // Background colors - matches bg-white/5 on black for tables/code blocks
+  bgSubtle: isDarkMode ? "#0d0d0d" : "#f5f5f5",
+  bgMuted: isDarkMode ? "#1a1a1a" : "#e8e8e8",
+  // Inactive/grayed elements
+  nodeInactive: isDarkMode ? "#404040" : "#a3a3a3",
+  edgeInactive: isDarkMode ? "#3a3a3a" : "#c4c4c4",
+})
+
+// Get quality color using a smooth gradient through red → orange → yellow → green
+// Maps quality (0.80-1.0) to the color spectrum
 function getQualityColor(quality: number): string {
-  const normalizedQuality = Math.max(0, Math.min(1, (quality - 0.85) / 0.15))
-  const hue = normalizedQuality * 142
-  return `hsl(${hue}, 70%, 50%)`
+  // Normalize to 0-1 range (0.80 = 0, 1.0 = 1)
+  const t = Math.max(0, Math.min(1, (quality - 0.80) / 0.20))
+  
+  // Piecewise linear interpolation through color stops
+  // 0.0-0.33: red → orange (hue 0 → 25)
+  // 0.33-0.66: orange → yellow (hue 25 → 45)  
+  // 0.66-1.0: yellow → green (hue 45 → 142)
+  let hue: number
+  if (t < 0.33) {
+    hue = t * 3 * 25 // 0 → 25
+  } else if (t < 0.66) {
+    hue = 25 + (t - 0.33) * 3 * 20 // 25 → 45
+  } else {
+    hue = 45 + (t - 0.66) * 3 * 97 // 45 → 142
+  }
+  
+  return `hsl(${hue}, 72%, 50%)`
+}
+
+// Get slightly muted version of quality color for non-hovered states
+// Still vibrant but distinguishable from hovered state
+function getMutedQualityColor(quality: number, isDarkMode: boolean): string {
+  const t = Math.max(0, Math.min(1, (quality - 0.80) / 0.20))
+  
+  let hue: number
+  if (t < 0.33) {
+    hue = t * 3 * 25
+  } else if (t < 0.66) {
+    hue = 25 + (t - 0.33) * 3 * 20
+  } else {
+    hue = 45 + (t - 0.66) * 3 * 97
+  }
+  
+  // Brighter colors while meeting WCAG AA (3:1 contrast for graphical objects)
+  return `hsl(${hue}, 70%, ${isDarkMode ? 53 : 45}%)`
+}
+
+// Determine if text should be dark or light based on quality
+// All quality colors are bright enough to need dark text
+function getTextColorForQuality(quality: number): string {
+  return "#000"
 }
 
 // ============================================
@@ -21,62 +96,61 @@ function getQualityColor(quality: number): string {
 // ============================================
 export function SwapGateVisualizer({ isDarkMode }: { isDarkMode: boolean }) {
   const [showDecomposition, setShowDecomposition] = useState(false)
-  
-  const stroke = isDarkMode ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.8)"
-  const strokeDim = isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"
+  const muted = getMutedColors(isDarkMode)
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+    <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
       <div className="px-6 py-5">
         <div className="flex flex-col items-center gap-6">
           <div className="flex items-center gap-6 flex-wrap justify-center">
             <svg width="140" height="80" viewBox="0 0 140 80">
-              <line x1="20" y1="25" x2="120" y2="25" stroke={stroke} strokeWidth="1" />
-              <line x1="20" y1="55" x2="120" y2="55" stroke={stroke} strokeWidth="1" />
-              <text x="12" y="29" fill={stroke} fontSize="13" fontFamily="monospace" textAnchor="end">q₁</text>
-              <text x="12" y="59" fill={stroke} fontSize="13" fontFamily="monospace" textAnchor="end">q₂</text>
-              <line x1="65" y1="20" x2="75" y2="30" stroke={stroke} strokeWidth="1.5" />
-              <line x1="75" y1="20" x2="65" y2="30" stroke={stroke} strokeWidth="1.5" />
-              <line x1="65" y1="50" x2="75" y2="60" stroke={stroke} strokeWidth="1.5" />
-              <line x1="75" y1="50" x2="65" y2="60" stroke={stroke} strokeWidth="1.5" />
-              <line x1="70" y1="30" x2="70" y2="50" stroke={stroke} strokeWidth="1" />
+              <line x1="20" y1="25" x2="120" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+              <line x1="20" y1="55" x2="120" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
+              <text x="12" y="29" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₁</text>
+              <text x="12" y="59" fill={muted.strokePrimary} fontSize="13" fontFamily="monospace" textAnchor="end">q₂</text>
+              <line x1="65" y1="20" x2="75" y2="30" stroke={muted.strokePrimary} strokeWidth="1.5" />
+              <line x1="75" y1="20" x2="65" y2="30" stroke={muted.strokePrimary} strokeWidth="1.5" />
+              <line x1="65" y1="50" x2="75" y2="60" stroke={muted.strokePrimary} strokeWidth="1.5" />
+              <line x1="75" y1="50" x2="65" y2="60" stroke={muted.strokePrimary} strokeWidth="1.5" />
+              <line x1="70" y1="30" x2="70" y2="50" stroke={muted.strokePrimary} strokeWidth="1" />
             </svg>
             
-            <span className="text-xl opacity-40">=</span>
+            <span className="text-xl" style={{ color: muted.textMuted }}>=</span>
             
             <svg width={showDecomposition ? "300" : "140"} height="80" viewBox={showDecomposition ? "0 0 300 80" : "0 0 140 80"} className="transition-all duration-300">
-              <line x1="20" y1="25" x2={showDecomposition ? "280" : "120"} y2="25" stroke={stroke} strokeWidth="1" />
-              <line x1="20" y1="55" x2={showDecomposition ? "280" : "120"} y2="55" stroke={stroke} strokeWidth="1" />
+              <line x1="20" y1="25" x2={showDecomposition ? "280" : "120"} y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+              <line x1="20" y1="55" x2={showDecomposition ? "280" : "120"} y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
               {showDecomposition ? (
                 <>
-                  <circle cx="70" cy="55" r="4" fill={stroke} />
-                  <line x1="70" y1="55" x2="70" y2="25" stroke={stroke} strokeWidth="1" />
-                  <circle cx="70" cy="25" r="8" fill="none" stroke={stroke} strokeWidth="1" />
-                  <line x1="70" y1="17" x2="70" y2="33" stroke={stroke} strokeWidth="1" />
-                  <circle cx="150" cy="25" r="4" fill={stroke} />
-                  <line x1="150" y1="25" x2="150" y2="55" stroke={stroke} strokeWidth="1" />
-                  <circle cx="150" cy="55" r="8" fill="none" stroke={stroke} strokeWidth="1" />
-                  <line x1="150" y1="47" x2="150" y2="63" stroke={stroke} strokeWidth="1" />
-                  <circle cx="230" cy="55" r="4" fill={stroke} />
-                  <line x1="230" y1="55" x2="230" y2="25" stroke={stroke} strokeWidth="1" />
-                  <circle cx="230" cy="25" r="8" fill="none" stroke={stroke} strokeWidth="1" />
-                  <line x1="230" y1="17" x2="230" y2="33" stroke={stroke} strokeWidth="1" />
+                  <circle cx="70" cy="55" r="4" fill={muted.strokePrimary} />
+                  <line x1="70" y1="55" x2="70" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <circle cx="70" cy="25" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <line x1="70" y1="17" x2="70" y2="33" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <circle cx="150" cy="25" r="4" fill={muted.strokePrimary} />
+                  <line x1="150" y1="25" x2="150" y2="55" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <circle cx="150" cy="55" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <line x1="150" y1="47" x2="150" y2="63" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <circle cx="230" cy="55" r="4" fill={muted.strokePrimary} />
+                  <line x1="230" y1="55" x2="230" y2="25" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <circle cx="230" cy="25" r="8" fill="none" stroke={muted.strokePrimary} strokeWidth="1" />
+                  <line x1="230" y1="17" x2="230" y2="33" stroke={muted.strokePrimary} strokeWidth="1" />
                 </>
               ) : (
-                <text x="70" y="44" fill={strokeDim} fontSize="13" textAnchor="middle" fontFamily="monospace">3 × CNOT</text>
+                <text x="70" y="44" fill={muted.strokeSecondary} fontSize="13" textAnchor="middle" fontFamily="monospace">3 × CNOT</text>
               )}
             </svg>
           </div>
           
-          <button
+          <Button
+            variant="outline"
+            size="xs"
             onClick={() => setShowDecomposition(!showDecomposition)}
-            className={`text-sm transition-opacity hover:opacity-70 ${isDarkMode ? "text-white/60" : "text-black/60"}`}
           >
-            {showDecomposition ? "← Collapse" : "Show decomposition →"}
-          </button>
+            {showDecomposition ? "Collapse" : "Show decomposition"}
+          </Button>
         </div>
       </div>
-      <div className={`px-6 py-4 text-sm opacity-50`}>
+      <div className="px-6 py-4 text-sm" style={{ color: muted.textMuted }}>
         A SWAP gate exchanges quantum states between two qubits. It requires 3 CNOT operations, 
         so each SWAP inherits 3× the two-qubit gate error.
       </div>
@@ -100,75 +174,63 @@ interface QubitEdge {
   quality: number
 }
 
+// Qubit fidelities distributed across the color spectrum:
+// 0.80-0.87 = red, 0.87-0.93 = orange, 0.93-0.97 = yellow, 0.97-1.0 = green
 const TOPOLOGY_QUBITS: QubitNode[] = [
-  { id: 0, x: 50, y: 35, quality: 0.95 },
-  { id: 1, x: 120, y: 35, quality: 0.92 },
-  { id: 2, x: 190, y: 35, quality: 0.98 },
-  { id: 3, x: 260, y: 35, quality: 0.91 },
-  { id: 4, x: 85, y: 85, quality: 0.88 },
-  { id: 5, x: 155, y: 85, quality: 0.96 },
-  { id: 6, x: 225, y: 85, quality: 0.94 },
-  { id: 7, x: 50, y: 135, quality: 0.97 },
-  { id: 8, x: 120, y: 135, quality: 0.93 },
-  { id: 9, x: 190, y: 135, quality: 0.99 },
-  { id: 10, x: 260, y: 135, quality: 0.90 },
+  { id: 0, x: 50, y: 35, quality: 0.95 },   // yellow
+  { id: 1, x: 120, y: 35, quality: 0.89 },  // orange
+  { id: 2, x: 190, y: 35, quality: 0.98 },  // green
+  { id: 3, x: 260, y: 35, quality: 0.82 },  // red
+  { id: 4, x: 85, y: 85, quality: 0.84 },   // red
+  { id: 5, x: 155, y: 85, quality: 0.97 },  // green
+  { id: 6, x: 225, y: 85, quality: 0.94 },  // yellow
+  { id: 7, x: 50, y: 135, quality: 0.99 },  // green
+  { id: 8, x: 120, y: 135, quality: 0.91 }, // orange
+  { id: 9, x: 190, y: 135, quality: 0.98 }, // green
+  { id: 10, x: 260, y: 135, quality: 0.83 },// red
 ]
 
 const TOPOLOGY_EDGES: QubitEdge[] = [
-  { from: 0, to: 1, quality: 0.97 },
-  { from: 1, to: 2, quality: 0.92 },
-  { from: 2, to: 3, quality: 0.95 },
-  { from: 0, to: 4, quality: 0.88 },
-  { from: 1, to: 5, quality: 0.94 },
-  { from: 2, to: 6, quality: 0.96 },
-  { from: 4, to: 5, quality: 0.91 },
-  { from: 5, to: 6, quality: 0.99 },
-  { from: 4, to: 7, quality: 0.93 },
-  { from: 4, to: 8, quality: 0.87 },
-  { from: 5, to: 8, quality: 0.95 },
-  { from: 5, to: 9, quality: 0.98 },
-  { from: 6, to: 9, quality: 0.94 },
-  { from: 6, to: 10, quality: 0.89 },
-  { from: 7, to: 8, quality: 0.96 },
-  { from: 8, to: 9, quality: 0.97 },
-  { from: 9, to: 10, quality: 0.92 },
+  { from: 0, to: 1, quality: 0.97 },  // green
+  { from: 1, to: 2, quality: 0.90 },  // orange
+  { from: 2, to: 3, quality: 0.82 },  // red
+  { from: 0, to: 4, quality: 0.84 },  // red
+  { from: 1, to: 5, quality: 0.94 },  // yellow
+  { from: 2, to: 6, quality: 0.96 },  // yellow
+  { from: 4, to: 5, quality: 0.88 },  // orange
+  { from: 5, to: 6, quality: 0.99 },  // green
+  { from: 4, to: 7, quality: 0.93 },  // yellow
+  { from: 4, to: 8, quality: 0.85 },  // red
+  { from: 5, to: 8, quality: 0.95 },  // yellow
+  { from: 5, to: 9, quality: 0.98 },  // green
+  { from: 6, to: 9, quality: 0.94 },  // yellow
+  { from: 6, to: 10, quality: 0.81 }, // red
+  { from: 7, to: 8, quality: 0.97 },  // green
+  { from: 8, to: 9, quality: 0.96 },  // yellow
+  { from: 9, to: 10, quality: 0.86 }, // red
 ]
 
 export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
   const [hoveredQubit, setHoveredQubit] = useState<number | null>(null)
   const [hoveredEdge, setHoveredEdge] = useState<{from: number, to: number} | null>(null)
   const [selectedQubits, setSelectedQubits] = useState<number[]>([])
-  const [lastHovered, setLastHovered] = useState<{ type: 'qubit' | 'edge', qubit?: number, edge?: {from: number, to: number} } | null>(null)
-
-  // Update last hovered when hovering changes
-  const handleQubitHover = (id: number | null) => {
-    setHoveredQubit(id)
-    if (id !== null) {
-      setLastHovered({ type: 'qubit', qubit: id })
-    }
-  }
-
-  const handleEdgeHover = (edge: {from: number, to: number} | null) => {
-    setHoveredEdge(edge)
-    if (edge !== null) {
-      setLastHovered({ type: 'edge', edge })
-    }
-  }
+  const muted = getMutedColors(isDarkMode)
 
   const toggleQubitSelection = (id: number) => {
     if (selectedQubits.includes(id)) {
       setSelectedQubits(selectedQubits.filter(q => q !== id))
-    } else if (selectedQubits.length < 3) {
+    } else if (selectedQubits.length < 2) {
       setSelectedQubits([...selectedQubits, id])
+    } else {
+      setSelectedQubits([selectedQubits[1], id])
     }
   }
 
-  const isConnected = (qubits: number[]): boolean => {
-    if (qubits.length <= 1) return true
-    const edges = TOPOLOGY_EDGES.filter(e => 
-      qubits.includes(e.from) && qubits.includes(e.to)
+  // Check if two qubits are directly connected
+  const areDirectlyConnected = (q1: number, q2: number): boolean => {
+    return TOPOLOGY_EDGES.some(e => 
+      (e.from === q1 && e.to === q2) || (e.from === q2 && e.to === q1)
     )
-    return edges.length >= qubits.length - 1
   }
 
   // BFS to find shortest path between two qubits
@@ -181,7 +243,6 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
       const path = queue.shift()!
       const current = path[path.length - 1]
       
-      // Find neighbors
       const neighbors = TOPOLOGY_EDGES
         .filter(e => e.from === current || e.to === current)
         .map(e => e.from === current ? e.to : e.from)
@@ -197,154 +258,119 @@ export function ConnectivityGraph({ isDarkMode }: { isDarkMode: boolean }) {
     return null
   }
 
-  // Calculate SWAP info for non-connected selections
-  const getSwapInfo = (): { swaps: number; via: number[] } | null => {
+  // Get SWAP count for selected qubits
+  const getSwapCount = (): number | null => {
     if (selectedQubits.length !== 2) return null
+    if (areDirectlyConnected(selectedQubits[0], selectedQubits[1])) return 0
     const path = findShortestPath(selectedQubits[0], selectedQubits[1])
-    if (!path || path.length <= 2) return null
-    return {
-      swaps: path.length - 2,
-      via: path.slice(1, -1)
-    }
+    return path ? path.length - 2 : null
   }
 
-  const connected = isConnected(selectedQubits)
-  const swapInfo = !connected ? getSwapInfo() : null
+  const swapCount = getSwapCount()
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
-      <div className="p-6">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-shrink-0">
-            <svg width="310" height="170" viewBox="0 0 310 170">
-              {TOPOLOGY_EDGES.map((edge, i) => {
-                const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
-                const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
-                const isHovered = hoveredEdge?.from === edge.from && hoveredEdge?.to === edge.to
-                const isSelected = selectedQubits.includes(edge.from) && selectedQubits.includes(edge.to)
-                return (
-                  <line
-                    key={i}
-                    x1={fromQubit.x}
-                    y1={fromQubit.y}
-                    x2={toQubit.x}
-                    y2={toQubit.y}
-                    stroke={isSelected ? colors.accent : getQualityColor(edge.quality)}
-                    strokeWidth={isHovered || isSelected ? 2.5 : 1.5}
-                    opacity={isSelected ? 1 : isHovered ? 0.9 : 0.5}
-                    className="cursor-pointer transition-all duration-150"
-                    onMouseEnter={() => handleEdgeHover(edge)}
-                    onMouseLeave={() => handleEdgeHover(null)}
-                  />
-                )
-              })}
-              {TOPOLOGY_QUBITS.map((qubit) => {
-                const isSelected = selectedQubits.includes(qubit.id)
-                const isHovered = hoveredQubit === qubit.id
-                const nodeColor = isSelected ? colors.accent : getQualityColor(qubit.quality)
-                return (
-                  <g key={qubit.id} onClick={() => toggleQubitSelection(qubit.id)} className="cursor-pointer">
-                    <circle
-                      cx={qubit.x}
-                      cy={qubit.y}
-                      r={isHovered || isSelected ? 14 : 12}
-                      fill={nodeColor}
-                      opacity={isSelected ? 1 : isHovered ? 0.95 : 0.85}
-                      className="transition-all duration-150"
-                      onMouseEnter={() => handleQubitHover(qubit.id)}
-                      onMouseLeave={() => handleQubitHover(null)}
+    <TooltipProvider delayDuration={0}>
+      <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
+        <div className="p-6">
+          <svg width="310" height="170" viewBox="0 0 310 170" className="mx-auto">
+            {TOPOLOGY_EDGES.map((edge, i) => {
+              const fromQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.from)!
+              const toQubit = TOPOLOGY_QUBITS.find(q => q.id === edge.to)!
+              const isHovered = hoveredEdge?.from === edge.from && hoveredEdge?.to === edge.to
+              const isSelected = selectedQubits.includes(edge.from) && selectedQubits.includes(edge.to)
+              const edgeColor = isSelected 
+                ? colors.accent 
+                : isHovered 
+                  ? getQualityColor(edge.quality) 
+                  : getMutedQualityColor(edge.quality, isDarkMode)
+              return (
+                <Tooltip key={i}>
+                  <TooltipTrigger asChild>
+                    <line
+                      x1={fromQubit.x}
+                      y1={fromQubit.y}
+                      x2={toQubit.x}
+                      y2={toQubit.y}
+                      stroke={edgeColor}
+                      strokeWidth={isHovered || isSelected ? 2.5 : 1.5}
+                      className="cursor-pointer transition-all duration-150"
+                      onMouseEnter={() => setHoveredEdge(edge)}
+                      onMouseLeave={() => setHoveredEdge(null)}
                     />
-                    <text
-                      x={qubit.x}
-                      y={qubit.y + 4}
-                      textAnchor="middle"
-                      fill="#fff"
-                      fontSize="11"
-                      fontWeight="500"
-                      fontFamily="monospace"
-                      className="pointer-events-none select-none"
-                    >
-                      {qubit.id}
-                    </text>
-                  </g>
-                )
-              })}
-            </svg>
-          </div>
-          
-          <div className="flex-1 text-sm space-y-4">
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.bad }} />
-                <span className="opacity-60">Low</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors.good }} />
-                <span className="opacity-60">High</span>
-              </div>
-            </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="font-mono">
+                    <span style={{ color: getQualityColor(edge.quality) }}>
+                      {(edge.quality * 100).toFixed(0)}%
+                    </span>
+                    {" "}gate fidelity
+                  </TooltipContent>
+                </Tooltip>
+              )
+            })}
+            {TOPOLOGY_QUBITS.map((qubit) => {
+              const isSelected = selectedQubits.includes(qubit.id)
+              const isHovered = hoveredQubit === qubit.id
+              const nodeColor = isSelected 
+                ? colors.accent 
+                : isHovered 
+                  ? getQualityColor(qubit.quality) 
+                  : getMutedQualityColor(qubit.quality, isDarkMode)
+              return (
+                <Tooltip key={qubit.id}>
+                  <TooltipTrigger asChild>
+                    <g onClick={() => toggleQubitSelection(qubit.id)} className="cursor-pointer">
+                      <circle
+                        cx={qubit.x}
+                        cy={qubit.y}
+                        r={isHovered || isSelected ? 13 : 11}
+                        fill={nodeColor}
+                        className="transition-all duration-150"
+                        onMouseEnter={() => setHoveredQubit(qubit.id)}
+                        onMouseLeave={() => setHoveredQubit(null)}
+                      />
+                      <text
+                        x={qubit.x}
+                        y={qubit.y + 4}
+                        textAnchor="middle"
+                        fill={isSelected ? "#000" : getTextColorForQuality(qubit.quality)}
+                        fontSize="10"
+                        fontWeight="500"
+                        fontFamily="monospace"
+                        className="pointer-events-none select-none"
+                      >
+                        {qubit.id}
+                      </text>
+                    </g>
+                  </TooltipTrigger>
+                  <TooltipContent className="font-mono">
+                    Q{qubit.id}:{" "}
+                    <span style={{ color: getQualityColor(qubit.quality) }}>
+                      {(qubit.quality * 100).toFixed(0)}%
+                    </span>
+                    {" "}fidelity
+                  </TooltipContent>
+                </Tooltip>
+              )
+            })}
+          </svg>
 
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="opacity-50 text-xs">Select up to 3 qubits</p>
-                {selectedQubits.length > 0 && (
-                  <button
-                    onClick={() => setSelectedQubits([])}
-                    className={`text-xs px-2 py-0.5 rounded transition-opacity hover:opacity-80 ${isDarkMode ? "bg-white/10 text-white/60" : "bg-black/10 text-black/60"}`}
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              {selectedQubits.length > 0 ? (
-                <>
-                  <p className="font-mono">
-                    {selectedQubits.map((q, i) => {
-                      const qubit = TOPOLOGY_QUBITS.find(qb => qb.id === q)!
-                      return (
-                        <span key={q}>
-                          {i > 0 && <span className="opacity-40"> → </span>}
-                          <span>Q{q}</span>
-                          <span className="opacity-50 text-xs ml-1">({(qubit.quality * 100).toFixed(0)}%)</span>
-                        </span>
-                      )
-                    })}
-                  </p>
-                  {selectedQubits.length > 1 && (
-                    <p className="text-sm mt-1" style={{ color: connected ? colors.good : colors.bad }}>
-                      {connected 
-                        ? "Connected" 
-                        : swapInfo 
-                          ? `Not connected — needs ${swapInfo.swaps} SWAP${swapInfo.swaps > 1 ? 's' : ''} (via ${swapInfo.via.map(q => `Q${q}`).join(', ')})`
-                          : "Not connected — needs SWAP"}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <div className={`px-3 py-2 rounded border border-dashed ${isDarkMode ? "border-white/20" : "border-black/20"}`}>
-                  <p className="opacity-50 text-sm">Click qubits in the graph to select them</p>
-                </div>
-              )}
-            </div>
-
-            {/* Info panel - shows active hover or last hovered */}
-            <div className={`font-mono text-xs transition-opacity ${hoveredQubit !== null || hoveredEdge ? "opacity-80" : "opacity-50"}`}>
-              {hoveredQubit !== null ? (
-                <p>Q{hoveredQubit}: <span style={{ color: getQualityColor(TOPOLOGY_QUBITS[hoveredQubit].quality) }}>{(TOPOLOGY_QUBITS[hoveredQubit].quality * 100).toFixed(0)}%</span> fidelity</p>
-              ) : hoveredEdge ? (
-                <p>Q{hoveredEdge.from}↔Q{hoveredEdge.to}: <span style={{ color: getQualityColor(TOPOLOGY_EDGES.find(e => e.from === hoveredEdge.from && e.to === hoveredEdge.to)!.quality) }}>{(TOPOLOGY_EDGES.find(e => e.from === hoveredEdge.from && e.to === hoveredEdge.to)!.quality * 100).toFixed(0)}%</span> gate fidelity</p>
-              ) : lastHovered?.type === 'qubit' && lastHovered.qubit !== undefined ? (
-                <p>Q{lastHovered.qubit}: <span style={{ color: getQualityColor(TOPOLOGY_QUBITS[lastHovered.qubit].quality) }}>{(TOPOLOGY_QUBITS[lastHovered.qubit].quality * 100).toFixed(0)}%</span> fidelity</p>
-              ) : lastHovered?.type === 'edge' && lastHovered.edge ? (
-                <p>Q{lastHovered.edge.from}↔Q{lastHovered.edge.to}: <span style={{ color: getQualityColor(TOPOLOGY_EDGES.find(e => e.from === lastHovered.edge!.from && e.to === lastHovered.edge!.to)!.quality) }}>{(TOPOLOGY_EDGES.find(e => e.from === lastHovered.edge!.from && e.to === lastHovered.edge!.to)!.quality * 100).toFixed(0)}%</span> gate fidelity</p>
-              ) : (
-                <p className="opacity-60">Hover over qubits or edges to see quality</p>
-              )}
-            </div>
+          <div className="mt-4 text-center text-sm font-mono min-h-[1.5rem]">
+            {selectedQubits.length === 2 ? (
+              <span>
+                <span style={{ color: muted.textSecondary }}>Q{selectedQubits[0]} → Q{selectedQubits[1]}:</span>{" "}
+                <span style={{ color: swapCount === 0 ? colors.good : colors.bad }}>
+                  {swapCount === 0 ? "Connected" : `${swapCount} SWAP${swapCount !== 1 ? "s" : ""}`}
+                </span>
+              </span>
+            ) : selectedQubits.length === 1 ? (
+              <span style={{ color: muted.textMuted }}>Select another qubit</span>
+            ) : (
+              <span style={{ color: muted.textMuted }}>Click to select qubits</span>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   )
 }
 
@@ -370,8 +396,7 @@ function QuantumCircuit({
   width?: number
   isDarkMode: boolean
 }) {
-  const stroke = isDarkMode ? "rgba(255,255,255,0.7)" : "rgba(0,0,0,0.7)"
-  const strokeDim = isDarkMode ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)"
+  const muted = getMutedColors(isDarkMode)
   const height = numQubits * 40 + 20
   const gateSpacing = 50
   const startX = 50
@@ -381,15 +406,15 @@ function QuantumCircuit({
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
       {Array.from({ length: numQubits }).map((_, i) => (
         <g key={i}>
-          <line x1="30" y1={qubitY(i)} x2={width - 10} y2={qubitY(i)} stroke={strokeDim} strokeWidth="1" />
+          <line x1="30" y1={qubitY(i)} x2={width - 10} y2={qubitY(i)} stroke={muted.strokeMuted} strokeWidth="1" />
           {labels && (
-            <text x="8" y={qubitY(i) + 4} fill={stroke} fontSize="12" fontFamily="monospace">{labels[i]}</text>
+            <text x="8" y={qubitY(i) + 4} fill={muted.strokeSecondary} fontSize="12" fontFamily="monospace">{labels[i]}</text>
           )}
         </g>
       ))}
       {gates.map((gate, gateIdx) => {
         const x = startX + gateIdx * gateSpacing
-        const gateStroke = gate.highlight ? colors.accent : stroke
+        const gateStroke = gate.highlight ? colors.accent : muted.strokeSecondary
 
         if (gate.type === "cnot") {
           const [control, target] = gate.qubits
@@ -430,7 +455,7 @@ function QuantumCircuit({
 // Circuit Placement Demo
 // ============================================
 function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: number[], isDarkMode: boolean }) {
-  const stroke = isDarkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"
+  const muted = getMutedColors(isDarkMode)
   
   return (
     <svg width="280" height="155" viewBox="0 0 310 170">
@@ -445,9 +470,8 @@ function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: n
             y1={fromQubit.y}
             x2={toQubit.x}
             y2={toQubit.y}
-            stroke={isSelected ? colors.accent : stroke}
+            stroke={isSelected ? colors.accent : muted.edgeInactive}
             strokeWidth={isSelected ? 2 : 1}
-            opacity={isSelected ? 1 : 0.2}
           />
         )
       })}
@@ -460,18 +484,16 @@ function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: n
               cx={qubit.x}
               cy={qubit.y}
               r={isSelected ? 16 : 14}
-              fill={isSelected ? colors.accent : (isDarkMode ? "#555" : "#aaa")}
-              opacity={isSelected ? 1 : 0.4}
+              fill={isSelected ? colors.accent : muted.nodeInactive}
             />
             <text
               x={qubit.x}
               y={qubit.y + 4}
               textAnchor="middle"
-              fill={isSelected ? "#000" : (isDarkMode ? "#fff" : "#000")}
+              fill={isSelected ? "#000" : muted.textMuted}
               fontSize="12"
               fontWeight={isSelected ? "600" : "normal"}
               fontFamily="monospace"
-              opacity={isSelected ? 1 : 0.6}
             >
               {isSelected ? `q${logicalIdx}` : qubit.id}
             </text>
@@ -483,6 +505,8 @@ function PlacementTopology({ highlightQubits, isDarkMode }: { highlightQubits: n
 }
 
 export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
+  const muted = getMutedColors(isDarkMode)
+  
   const originalGates: Gate[] = [
     { type: "cnot", qubits: [0, 1] },
     { type: "cnot", qubits: [1, 2] },
@@ -505,10 +529,10 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
   ]
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+    <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
       <div className="p-6">
         <div className="mb-6">
-          <p className="text-xs uppercase tracking-wider opacity-50 mb-3">Input circuit</p>
+          <p className="text-xs uppercase tracking-wider mb-3" style={{ color: muted.textMuted }}>Input circuit</p>
           <QuantumCircuit numQubits={3} gates={originalGates} labels={["q₀", "q₁", "q₂"]} width={220} isDarkMode={isDarkMode} />
         </div>
 
@@ -523,8 +547,8 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
               <QuantumCircuit numQubits={4} gates={randomRoutedGates} labels={["q₀", "q₁", "q₂", ""]} width={300} isDarkMode={isDarkMode} />
             </div>
             <div className="mt-3 flex gap-6 text-sm font-mono">
-              <span><span className="opacity-50">SWAPs:</span> <span style={{ color: colors.bad }}>4</span></span>
-              <span><span className="opacity-50">Fidelity:</span> <span style={{ color: colors.bad }}>~52%</span></span>
+              <span><span style={{ color: muted.textMuted }}>SWAPs:</span> <span style={{ color: colors.bad }}>4</span></span>
+              <span><span style={{ color: muted.textMuted }}>Fidelity:</span> <span style={{ color: colors.bad }}>~52%</span></span>
             </div>
           </div>
 
@@ -538,8 +562,8 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
               <QuantumCircuit numQubits={3} gates={smartRoutedGates} labels={["q₀", "q₁", "q₂"]} width={260} isDarkMode={isDarkMode} />
             </div>
             <div className="mt-3 flex gap-6 text-sm font-mono">
-              <span><span className="opacity-50">SWAPs:</span> <span style={{ color: colors.good }}>1</span></span>
-              <span><span className="opacity-50">Fidelity:</span> <span style={{ color: colors.good }}>~89%</span></span>
+              <span><span style={{ color: muted.textMuted }}>SWAPs:</span> <span style={{ color: colors.good }}>1</span></span>
+              <span><span style={{ color: muted.textMuted }}>Fidelity:</span> <span style={{ color: colors.good }}>~89%</span></span>
             </div>
           </div>
         </div>
@@ -553,8 +577,7 @@ export function PlacementComparison({ isDarkMode }: { isDarkMode: boolean }) {
 // ============================================
 export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) {
   const [selectedPath, setSelectedPath] = useState<"short" | "quality">("short")
-
-  const stroke = isDarkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)"
+  const muted = getMutedColors(isDarkMode)
 
   const miniQubits = [
     { id: 0, x: 30, y: 60 },
@@ -587,9 +610,9 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
   }
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+    <div className="rounded-lg" style={{ backgroundColor: muted.bgSubtle }}>
       <div className="p-6">
-        <p className="text-sm opacity-60 mb-5">
+        <p className="text-sm mb-5" style={{ color: muted.textSecondary }}>
           Moving state from <span className="font-mono" style={{ color: colors.accent }}>Q0</span> to <span className="font-mono" style={{ color: colors.accent }}>Q5</span>
         </p>
 
@@ -606,9 +629,8 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                   y1={from.y}
                   x2={to.x}
                   y2={to.y}
-                  stroke={onPath ? colors.accent : stroke}
+                  stroke={onPath ? colors.accent : muted.edgeInactive}
                   strokeWidth={onPath ? 2 : 1}
-                  opacity={onPath ? 1 : 0.25}
                 />
               )
             })}
@@ -622,10 +644,9 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                   x={(from.x + to.x) / 2}
                   y={(from.y + to.y) / 2 - 8}
                   textAnchor="middle"
-                  fill={isDarkMode ? "#fff" : "#000"}
+                  fill={onPath ? muted.textPrimary : muted.textMuted}
                   fontSize="10"
                   fontFamily="monospace"
-                  opacity={onPath ? 0.8 : 0.4}
                 >
                   {(edge.quality * 100).toFixed(0)}%
                 </text>
@@ -643,14 +664,13 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
                     cx={q.x}
                     cy={q.y}
                     r={isEndpoint ? 13 : 11}
-                    fill={onPath || isEndpoint ? nodeColor : (isDarkMode ? "#444" : "#999")}
-                    opacity={isEndpoint || onPath ? 1 : 0.35}
+                    fill={onPath || isEndpoint ? nodeColor : muted.nodeInactive}
                   />
                   <text 
                     x={q.x} 
                     y={q.y + 4} 
                     textAnchor="middle" 
-                    fill="#fff"
+                    fill={isEndpoint ? "#000" : (onPath ? getTextColorForQuality(nodeQuality) : "#fff")}
                     fontSize="10" 
                     fontWeight="500"
                     fontFamily="monospace"
@@ -665,32 +685,36 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
           <div className="flex-1 space-y-2">
             <button
               onClick={() => setSelectedPath("short")}
-              className={`w-full text-left px-3 py-2.5 rounded-md transition-all ${
-                selectedPath === "short" ? (isDarkMode ? "bg-white/10" : "bg-black/10") : "opacity-50 hover:opacity-80"
-              }`}
+              className="w-full text-left px-3 py-2.5 rounded-md transition-colors"
+              style={{ 
+                backgroundColor: selectedPath === "short" ? muted.bgMuted : "transparent",
+                color: selectedPath === "short" ? muted.textPrimary : muted.textSecondary
+              }}
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Short path</span>
-                <span className="text-xs font-mono opacity-60">0→3→5</span>
+                <span className="text-xs font-mono tracking-tight" style={{ color: muted.textSecondary }}>0 → 3 → 5</span>
               </div>
-              <div className="text-xs opacity-50 mt-0.5">2 SWAPs · fidelities: 88%, 85%</div>
+              <div className="text-xs mt-0.5" style={{ color: muted.textMuted }}>2 SWAPs · fidelities: 88%, 85%</div>
             </button>
 
             <button
               onClick={() => setSelectedPath("quality")}
-              className={`w-full text-left px-3 py-2.5 rounded-md transition-all ${
-                selectedPath === "quality" ? (isDarkMode ? "bg-white/10" : "bg-black/10") : "opacity-50 hover:opacity-80"
-              }`}
+              className="w-full text-left px-3 py-2.5 rounded-md transition-colors"
+              style={{ 
+                backgroundColor: selectedPath === "quality" ? muted.bgMuted : "transparent",
+                color: selectedPath === "quality" ? muted.textPrimary : muted.textSecondary
+              }}
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Quality path</span>
-                <span className="text-xs font-mono opacity-60">0→1→2→4→5</span>
+                <span className="text-xs font-mono tracking-tight" style={{ color: muted.textSecondary }}>0 → 1 → 2 → 4 → 5</span>
               </div>
-              <div className="text-xs opacity-50 mt-0.5">4 SWAPs · fidelities: 97%, 99%, 98%, 96%</div>
+              <div className="text-xs mt-0.5" style={{ color: muted.textMuted }}>4 SWAPs · fidelities: 97%, 99%, 98%, 96%</div>
             </button>
 
             <div className="pt-3 flex items-center justify-between">
-              <span className="text-sm opacity-50">Total fidelity</span>
+              <span className="text-sm" style={{ color: muted.textMuted }}>Total fidelity</span>
               <span className="text-xl font-mono" style={{ color: selectedPath === "short" ? colors.bad : colors.good }}>
                 {((selectedPath === "short" ? shortPathFidelity : qualityPathFidelity) * 100).toFixed(0)}%
               </span>
@@ -708,18 +732,21 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
 export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
   const [gateCount, setGateCount] = useState(50)
   const [gateFidelity, setGateFidelity] = useState(0.99)
+  const muted = getMutedColors(isDarkMode)
 
   const totalFidelity = Math.pow(gateFidelity, gateCount)
   const improvedFidelity = Math.pow(gateFidelity + 0.005, gateCount)
   const improvement = improvedFidelity - totalFidelity
 
+  const sliderTrack = muted.strokeMuted
+
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+    <div className="rounded-lg not-prose" style={{ backgroundColor: muted.bgSubtle }}>
       <div className="p-6 space-y-5">
         <div className="space-y-4">
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span className="opacity-60">Two-qubit gates</span>
+              <span style={{ color: muted.textSecondary }}>Two-qubit gates</span>
               <span className="font-mono">{gateCount}</span>
             </div>
             <input
@@ -730,16 +757,14 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
               onChange={(e) => setGateCount(Number(e.target.value))}
               className="w-full h-1 rounded-full appearance-none cursor-pointer"
               style={{ 
-                background: isDarkMode 
-                  ? `linear-gradient(to right, ${colors.accent} 0%, ${colors.accent} ${(gateCount - 10) / 1.9}%, rgba(255,255,255,0.1) ${(gateCount - 10) / 1.9}%, rgba(255,255,255,0.1) 100%)`
-                  : `linear-gradient(to right, ${colors.accent} 0%, ${colors.accent} ${(gateCount - 10) / 1.9}%, rgba(0,0,0,0.1) ${(gateCount - 10) / 1.9}%, rgba(0,0,0,0.1) 100%)`
+                background: `linear-gradient(to right, ${colors.accent} 0%, ${colors.accent} ${(gateCount - 10) / 1.9}%, ${sliderTrack} ${(gateCount - 10) / 1.9}%, ${sliderTrack} 100%)`
               }}
             />
           </div>
 
           <div>
             <div className="flex justify-between text-sm mb-2">
-              <span className="opacity-60">Per-gate fidelity</span>
+              <span style={{ color: muted.textSecondary }}>Per-gate fidelity</span>
               <span className="font-mono">{(gateFidelity * 100).toFixed(1)}%</span>
             </div>
             <input
@@ -751,9 +776,7 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
               onChange={(e) => setGateFidelity(Number(e.target.value))}
               className="w-full h-1 rounded-full appearance-none cursor-pointer"
               style={{ 
-                background: isDarkMode 
-                  ? `linear-gradient(to right, ${colors.accent} 0%, ${colors.accent} ${(gateFidelity - 0.95) / 0.049 * 100}%, rgba(255,255,255,0.1) ${(gateFidelity - 0.95) / 0.049 * 100}%, rgba(255,255,255,0.1) 100%)`
-                  : `linear-gradient(to right, ${colors.accent} 0%, ${colors.accent} ${(gateFidelity - 0.95) / 0.049 * 100}%, rgba(0,0,0,0.1) ${(gateFidelity - 0.95) / 0.049 * 100}%, rgba(0,0,0,0.1) 100%)`
+                background: `linear-gradient(to right, ${colors.accent} 0%, ${colors.accent} ${(gateFidelity - 0.95) / 0.049 * 100}%, ${sliderTrack} ${(gateFidelity - 0.95) / 0.049 * 100}%, ${sliderTrack} 100%)`
               }}
             />
           </div>
@@ -761,16 +784,16 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
 
         <div className="flex items-end justify-between pt-2">
           <div>
-            <p className="text-xs opacity-50 mb-1">Circuit fidelity</p>
-            <p className="text-2xl font-mono">{(totalFidelity * 100).toFixed(1)}%</p>
+            <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Circuit fidelity</p>
+            <p className="text-2xl font-mono leading-none" style={{ margin: 0, marginTop: '4px' }}>{(totalFidelity * 100).toFixed(1)}%</p>
           </div>
           <div className="text-right">
-            <p className="text-xs opacity-50 mb-1">With +0.5% per gate</p>
-            <p className="text-2xl font-mono" style={{ color: colors.good }}>{(improvedFidelity * 100).toFixed(1)}%</p>
+            <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>With +0.5% per gate</p>
+            <p className="text-2xl font-mono leading-none" style={{ color: colors.good, margin: 0, marginTop: '4px' }}>{(improvedFidelity * 100).toFixed(1)}%</p>
           </div>
         </div>
 
-        <p className="text-sm opacity-50 pt-1">
+        <p className="text-sm pt-1" style={{ color: muted.textMuted, margin: 0 }}>
           Small improvements compound to <span className="font-mono" style={{ color: colors.good }}>+{(improvement * 100).toFixed(0)}%</span> total
         </p>
       </div>
@@ -784,19 +807,18 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
 export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
   const [step, setStep] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
+  const muted = getMutedColors(isDarkMode)
 
   const steps = [
     { label: "Start", fidelity: 1.0 },
     { label: "CNOT", fidelity: 0.99 },
     { label: "CNOT", fidelity: 0.98 },
     { label: "SWAP", fidelity: 0.94 },
-    { label: "CNOT", fidelity: 0.92 },
-    { label: "Measure", fidelity: 0.89 },
+    { label: "CNOT", fidelity: 0.88 },
+    { label: "Measure", fidelity: 0.82 },
   ]
 
   const currentFidelity = steps[step].fidelity
-  const stroke = isDarkMode ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.8)"
-  const strokeDim = isDarkMode ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)"
 
   useEffect(() => {
     if (!isPlaying) return
@@ -807,40 +829,40 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
   }, [steps.length, isPlaying])
 
   return (
-    <div className={`rounded-lg ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+    <div className="rounded-lg not-prose" style={{ backgroundColor: muted.bgSubtle }}>
       <div className="p-6">
         <svg width="100%" height="60" viewBox="0 0 480 60" preserveAspectRatio="xMidYMid meet">
-          <line x1="50" y1="30" x2="460" y2="30" stroke={strokeDim} strokeWidth="1" />
-          <text x="20" y="34" fill={stroke} fontSize="11" fontFamily="monospace">|ψ⟩</text>
+          <line x1="50" y1="30" x2="460" y2="30" stroke={muted.strokeMuted} strokeWidth="1" />
+          <text x="20" y="34" fill={muted.strokePrimary} fontSize="11" fontFamily="monospace">|ψ⟩</text>
           
           {steps.slice(1).map((s, i) => {
-            const x = 100 + i * 70
-            const isActive = i < step
+            const x = 105 + i * 78
+            const isVisited = i < step
             const isCurrent = i === step - 1
+            const isFuture = !isVisited && !isCurrent
             const boxFill = isCurrent 
               ? colors.accent 
-              : (isDarkMode ? "#1a1a1a" : "#f0f0f0")
+              : (isFuture ? muted.bgSubtle : muted.bgMuted)
             return (
               <g key={i}>
                 <rect
-                  x={x - 27}
+                  x={x - 32}
                   y={10}
-                  width="54"
+                  width="64"
                   height="40"
                   rx="4"
                   fill={boxFill}
-                  stroke={isActive ? (isDarkMode ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)") : strokeDim}
+                  stroke={isCurrent ? "none" : (isFuture ? muted.strokeMuted : muted.edgeInactive)}
                   strokeWidth="1"
                 />
                 <text
                   x={x}
                   y={35}
                   textAnchor="middle"
-                  fill={isCurrent ? "#000" : (isDarkMode ? "#fff" : "#000")}
+                  fill={isCurrent ? "#000" : (isFuture ? muted.textMuted : muted.textSecondary)}
                   fontSize="11"
                   fontWeight={isCurrent ? "600" : "normal"}
                   fontFamily="monospace"
-                  opacity={isActive ? 1 : 0.5}
                 >
                   {s.label}
                 </text>
@@ -851,8 +873,8 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
 
         <div className="flex items-end justify-between mt-5">
           <div>
-            <p className="text-xs opacity-50 mb-1">Fidelity</p>
-            <p className="text-2xl font-mono" style={{ color: currentFidelity < 0.95 ? colors.bad : colors.good }}>
+            <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Fidelity</p>
+            <p className="text-2xl font-mono leading-none" style={{ color: getQualityColor(currentFidelity), margin: 0, marginTop: '2px' }}>
               {(currentFidelity * 100).toFixed(0)}%
             </p>
           </div>
@@ -860,7 +882,8 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className={`p-1 rounded transition-all opacity-50 hover:opacity-100`}
+              className="p-1 rounded transition-colors"
+              style={{ color: muted.textSecondary }}
             >
               {isPlaying ? (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -875,14 +898,16 @@ export function ErrorAccumulation({ isDarkMode }: { isDarkMode: boolean }) {
             </button>
             
             <div className="flex gap-0.5">
-              {steps.map((_, i) => (
+              {steps.map((s, i) => (
                 <button
                   key={i}
                   onClick={() => { setStep(i); setIsPlaying(false); }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
-                    i === step ? "opacity-100" : "opacity-30 hover:opacity-60"
-                  }`}
-                  style={{ backgroundColor: i <= step ? (currentFidelity < 0.95 ? colors.bad : colors.good) : (isDarkMode ? "#fff" : "#000") }}
+                  className="w-1.5 h-1.5 rounded-full transition-colors"
+                  style={{ 
+                    backgroundColor: i <= step 
+                      ? getQualityColor(s.fidelity) 
+                      : muted.nodeInactive 
+                  }}
                 />
               ))}
             </div>

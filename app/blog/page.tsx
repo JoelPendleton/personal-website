@@ -15,24 +15,8 @@ const blogPosts = [
     date: "2026-01-30",
     excerpt: "The quantum computing industry has a hidden infrastructure problem. We explore the qubit routing challenge and introduce NACRE, a noise-aware routing engine that optimizes for fidelity instead of SWAP count.",
   },
-  {
-    slug: "building-quantum-computers-on-silicon",
-    title: "Building Quantum Computers on Silicon",
-    date: "2025-12-15",
-    excerpt: "An overview of our approach at Conductor Quantum to building scalable quantum computers using silicon-based technology.",
-  },
-  {
-    slug: "lessons-from-yc-s24",
-    title: "Lessons from Y Combinator S24",
-    date: "2025-10-20",
-    excerpt: "Reflections on our experience going through Y Combinator's Summer 2024 batch and what we learned about building a deep tech startup.",
-  },
-  {
-    slug: "from-physics-to-founder",
-    title: "From Physics to Founder",
-    date: "2025-08-05",
-    excerpt: "The journey from studying physics at UCL and Oxford to co-founding quantum computing companies.",
-  },
+
+
 ]
 
 function formatDate(dateString: string): string {

@@ -17,7 +17,7 @@ export function CodeBlock({ code, language = "plaintext", isDarkMode = true }: C
     const highlight = async () => {
       setIsLoading(true)
       try {
-        const theme: BundledTheme = isDarkMode ? "github-dark" : "github-light"
+        const theme: BundledTheme = isDarkMode ? "min-dark" : "min-light"
         const highlighted = await codeToHtml(code, {
           lang: language as BundledLanguage,
           theme,
@@ -25,7 +25,7 @@ export function CodeBlock({ code, language = "plaintext", isDarkMode = true }: C
         setHtml(highlighted)
       } catch {
         // Fallback to plaintext if language isn't supported
-        const theme: BundledTheme = isDarkMode ? "github-dark" : "github-light"
+        const theme: BundledTheme = isDarkMode ? "min-dark" : "min-light"
         const highlighted = await codeToHtml(code, {
           lang: "plaintext",
           theme,
@@ -45,10 +45,14 @@ export function CodeBlock({ code, language = "plaintext", isDarkMode = true }: C
     )
   }
 
+  // Override theme background to match site's component background
+  const bgColor = isDarkMode ? "#0d0d0d" : "#f5f5f5"
+  
   return (
     <div 
-      className="code-block rounded overflow-x-auto text-sm [&_pre]:p-4 [&_pre]:m-0 [&_pre]:overflow-x-auto"
-      dangerouslySetInnerHTML={{ __html: html }} 
+      className="code-block my-6 rounded-lg overflow-hidden text-sm leading-relaxed [&_pre]:p-6 [&_pre]:m-0 [&_pre]:overflow-x-auto [&_code]:p-0 [&_code]:m-0 [&_code]:leading-relaxed"
+      style={{ backgroundColor: bgColor }}
+      dangerouslySetInnerHTML={{ __html: html.replace(/background(-color)?:\s*[^;]+;?/g, `background-color: ${bgColor};`).replace(/margin[^;]*;?/g, '') }} 
     />
   )
 }
