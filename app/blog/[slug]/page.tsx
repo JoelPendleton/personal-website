@@ -12,7 +12,7 @@ import {
   CostFunctionComparison,
   ErrorAccumulation,
 } from "./circuit-matching-components"
-import { BenchmarkResults } from "./benchmark-results"
+import { BenchmarkResults, benchmarkStats } from "./benchmark-results"
 import { CodeBlock, InlineMath } from "../components"
 
 // Table of contents types and data
@@ -31,7 +31,11 @@ const circuitMatchingToc: TocItem[] = [
   { id: "six-component-cost-function", title: "The Six-Component Cost Function", level: 3 },
   { id: "intelligent-initial-placement", title: "Intelligent Initial Placement", level: 3 },
   { id: "performance", title: "Performance: Fidelity Is the Win", level: 2 },
+  { id: "fidelity-vs-swap-tradeoff", title: "The Fidelity vs SWAP Tradeoff", level: 3 },
   { id: "when-nacre-excels", title: "When NACRE Excels", level: 2 },
+  { id: "fidelity-regime-variation", title: "How Advantage Varies by Device Quality", level: 3 },
+  { id: "path-to-fault-tolerance", title: "NACRE and the Path to Fault Tolerance", level: 2 },
+  { id: "technical-details", title: "Technical Details", level: 2 },
   { id: "bigger-picture", title: "The Bigger Picture", level: 2 },
 ]
 
@@ -317,7 +321,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
 
       <h2 id="performance">Performance: Fidelity Is the Win</h2>
       <p>
-        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements. We benchmarked NACRE against SABRE (Qiskit&apos;s default router) on 12 different quantum circuits across 6 algorithm families:
+        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements. We benchmarked NACRE against SABRE (Qiskit&apos;s default router) across {benchmarkStats.goodRegime.totalCircuits} different quantum circuits spanning {benchmarkStats.algorithmFamilyCount} algorithm families, testing three different fidelity regimes:
       </p>
 
       <div className="my-12">
@@ -325,7 +329,22 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
       </div>
 
       <p>
-        <strong>The fidelity improvement is the headline result.</strong> The average 9.3% improvement in estimated fidelity might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity—nearly doubling your success rate.
+        <strong>The fidelity improvement is the headline result.</strong> The average {benchmarkStats.regimeGains.good}% improvement in estimated fidelity (on &quot;good&quot; 95-99% devices) might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity—nearly doubling your success rate.
+      </p>
+
+      <h3 id="fidelity-vs-swap-tradeoff">The Fidelity vs SWAP Tradeoff</h3>
+      <p>
+        A key finding: <strong>NACRE sometimes uses slightly more SWAPs than SABRE, yet achieves significantly higher fidelity</strong>. This is by design. For example, the QFT-4 circuit shows NACRE using an average of 2.1 SWAPs versus SABRE&apos;s 2.0, but achieving a +{benchmarkStats.maxGainCircuitNoisy.fidGain.toFixed(1)}% fidelity improvement in the noisy regime.
+      </p>
+      <p>
+        Consider why this happens: when your circuit needs to route quantum information from qubit A to qubit B, SABRE finds the shortest path—two hops through qubit C. But what if the A-C edge has 90% fidelity while a three-hop path through D and E has 99% fidelity on each edge?
+      </p>
+      <ul>
+        <li><strong>SABRE&apos;s 2-hop path</strong>: <InlineMath>{String.raw`0.90 \times 0.90 = 81\%`}</InlineMath> fidelity</li>
+        <li><strong>NACRE&apos;s 3-hop path</strong>: <InlineMath>{String.raw`0.99 \times 0.99 \times 0.99 = 97\%`}</InlineMath> fidelity</li>
+      </ul>
+      <p>
+        NACRE makes this tradeoff automatically. It may insert an extra SWAP if doing so routes through higher-fidelity hardware. The algorithm trusts the physics: <strong>what matters is the final fidelity of the quantum state, not how many operations it took to get there</strong>.
       </p>
 
       <h2 id="when-nacre-excels">When NACRE Excels</h2>
@@ -339,12 +358,97 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         <li><strong>Coherence times matter</strong> (deep circuits where qubits must survive many operations)</li>
       </ul>
 
+      <h3 id="fidelity-regime-variation">How Advantage Varies by Device Quality</h3>
+      <p>
+        Our benchmarks reveal a nuanced picture of when NACRE helps most. We tested across three fidelity regimes:
+      </p>
+      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
+              <th className="text-left p-3 font-medium">Fidelity Regime</th>
+              <th className="text-left p-3 font-medium">Gate Fidelity Range</th>
+              <th className="text-left p-3 font-medium">NACRE Advantage</th>
+              <th className="text-left p-3 font-medium">Representative Hardware</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Noisy</td>
+              <td className="p-3 opacity-75">90-99%</td>
+              <td className="p-3 opacity-75" style={{ color: "hsl(142, 71%, 45%)" }}>+{benchmarkStats.regimeGains.noisy}% avg</td>
+              <td className="p-3 opacity-75">Older/degraded devices</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Good</td>
+              <td className="p-3 opacity-75">95-99%</td>
+              <td className="p-3 opacity-75" style={{ color: "hsl(142, 65%, 55%)" }}>+{benchmarkStats.regimeGains.good}% avg</td>
+              <td className="p-3 opacity-75">Current superconducting</td>
+            </tr>
+            <tr>
+              <td className="p-3 font-medium">Excellent</td>
+              <td className="p-3 opacity-75">99-99.9%</td>
+              <td className="p-3 opacity-75" style={{ color: "hsl(142, 55%, 65%)" }}>+{benchmarkStats.regimeGains.excellent}% avg</td>
+              <td className="p-3 opacity-75">High-quality/trapped-ion</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The gains are largest on noisy devices (+{benchmarkStats.regimeGains.noisy}% average), where NACRE wins on {benchmarkStats.noisyRegime.nacreWins}/{benchmarkStats.noisyRegime.totalCircuits} circuits. But here&apos;s the critical insight: <strong>at excellent fidelities, NACRE&apos;s smaller percentage gains become more meaningful</strong>. Why? Because larger circuits remain in the &quot;useful&quot; fidelity range.
+      </p>
+      <p>
+        Consider a medium-depth circuit. On noisy hardware, even with NACRE&apos;s improvement, the absolute fidelity may be marginal. But on excellent hardware with NACRE&apos;s +{benchmarkStats.regimeGains.excellent}% improvement, circuits that would have been borderline unusable become viable for real applications.
+      </p>
+
+      <h2 id="path-to-fault-tolerance">NACRE and the Path to Fault Tolerance</h2>
+      <p>
+        An honest question: does noise-aware routing matter in the fault-tolerant era? The short answer is <strong>NACRE is explicitly a NISQ-era tool</strong>, and that&apos;s a feature, not a limitation.
+      </p>
+      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
+              <th className="text-left p-3 font-medium">Era</th>
+              <th className="text-left p-3 font-medium">Hardware State</th>
+              <th className="text-left p-3 font-medium">NACRE Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">NISQ (now)</td>
+              <td className="p-3 opacity-75">Noisy, heterogeneous fidelities</td>
+              <td className="p-3 opacity-75" style={{ color: "#22c55e" }}><strong>High</strong> — fidelity variance is the norm</td>
+            </tr>
+            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+              <td className="p-3 font-medium">Early QEC</td>
+              <td className="p-3 opacity-75">Partial error correction, varying logical fidelities</td>
+              <td className="p-3 opacity-75" style={{ color: "#f59e0b" }}><strong>Moderate</strong> — logical qubits may still differ</td>
+            </tr>
+            <tr>
+              <td className="p-3 font-medium">Full fault-tolerant</td>
+              <td className="p-3 opacity-75">Uniform, near-perfect logical gates</td>
+              <td className="p-3 opacity-75" style={{ color: "#737373" }}><strong>Low</strong> — all paths are equivalent</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The entire purpose of quantum error correction is to encode logical qubits such that logical operations have near-perfect, <em>uniform</em> fidelity. This eliminates the variance that NACRE exploits. When all paths are equivalent, SWAP minimization (what SABRE does) becomes the right objective again.
+      </p>
+      <p>
+        NACRE&apos;s architecture is designed with this evolution in mind. Today, it exploits fidelity variance to find high-quality paths on NISQ hardware. As QPUs become fault-tolerant and gate fidelities become uniform, we will evolve NACRE to shift its optimization focus toward minimizing circuit depth and gate overhead—the metrics that matter most when errors are correctable. This adaptive means NACRE maximizes fidelity for today&apos;s noisy hardware while positioning itself for tomorrow&apos;s fault-tolerant systems.
+      </p>
+    
+
+ 
+
       <h2 id="bigger-picture">The Bigger Picture</h2>
       <p>
         NACRE represents a philosophical shift in quantum circuit compilation. Traditional routers inherited the classical computing mindset: operations are reliable, so minimize their count. But quantum operations are probabilistic. Every gate, every SWAP, every microsecond of waiting introduces some probability of error.
       </p>
       <p>
-        The right objective function isn&apos;t &quot;minimize operations&quot;—it&apos;s &quot;maximize the probability that this computation returns the correct answer.&quot; NACRE is the first production routing engine built around this principle.
+        The right objective function isn&apos;t &quot;minimize operations&quot;—it&apos;s &quot;maximize the probability that this computation returns the correct answer.&quot; NACRE is a production routing engine built around this principle.
       </p>
       <p>
         As quantum processors scale from hundreds to thousands of qubits, and as error correction becomes practical, the routing problem will evolve. But the core principle—<strong>optimize for fidelity, not for proxy metrics</strong>—will remain essential. Today&apos;s NISQ devices are teaching us how to work with imperfect quantum systems, and that knowledge will carry forward into the fault-tolerant era.
@@ -496,6 +600,10 @@ export default function BlogPostPage() {
                   div :global(ul), div :global(ol) {
                     margin-bottom: 1.75rem;
                     padding-left: 1.5rem;
+                    list-style-type: disc;
+                  }
+                  div :global(ol) {
+                    list-style-type: decimal;
                   }
                   div :global(li) {
                     margin-bottom: 0.625rem;
