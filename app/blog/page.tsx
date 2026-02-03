@@ -11,7 +11,7 @@ const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
 const blogPosts = [
   {
     slug: "circuit-matching-problem",
-    title: "The Circuit Matching Problem: Why Your Quantum Computer Needs a Noise-Aware GPS",
+    title: "The Circuit Matching Problem: Why Your Quantum Computer Needs GPS",
     date: "2026-01-30",
     excerpt: "The quantum computing industry has a hidden infrastructure problem. We explore the qubit routing challenge and introduce NACRE, a noise-aware routing engine that optimizes for fidelity instead of SWAP count.",
   },

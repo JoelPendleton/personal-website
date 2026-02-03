@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import "katex/dist/katex.min.css"
@@ -12,13 +12,147 @@ import {
   CostFunctionComparison,
   ErrorAccumulation,
 } from "./circuit-matching-components"
+import { BenchmarkResults } from "./benchmark-results"
 import { CodeBlock, InlineMath } from "../components"
+
+// Table of contents types and data
+interface TocItem {
+  id: string
+  title: string
+  level: number
+}
+
+const circuitMatchingToc: TocItem[] = [
+  { id: "hidden-infrastructure-problem", title: "The Hidden Infrastructure Problem", level: 2 },
+  { id: "qubit-routing-problem", title: "The Qubit Routing Problem", level: 2 },
+  { id: "state-of-the-art", title: "The State of the Art: SABRE and Its Limitations", level: 2 },
+  { id: "nacre", title: "NACRE: Optimizing for What Actually Matters", level: 2 },
+  { id: "why-fidelity-compounds", title: "Why Fidelity Compounds", level: 2 },
+  { id: "six-component-cost-function", title: "The Six-Component Cost Function", level: 3 },
+  { id: "intelligent-initial-placement", title: "Intelligent Initial Placement", level: 3 },
+  { id: "performance", title: "Performance: Fidelity Is the Win", level: 2 },
+  { id: "when-nacre-excels", title: "When NACRE Excels", level: 2 },
+  { id: "bigger-picture", title: "The Bigger Picture", level: 2 },
+]
+
+// Table of Contents Sidebar Component
+function TableOfContents({ 
+  items, 
+  isDarkMode,
+  isCollapsed,
+  onToggle,
+}: { 
+  items: TocItem[]
+  isDarkMode: boolean
+  isCollapsed: boolean
+  onToggle: () => void
+}) {
+  const [activeId, setActiveId] = useState<string>("")
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id)
+          }
+        })
+      },
+      {
+        rootMargin: "-80px 0px -80% 0px",
+        threshold: 0,
+      }
+    )
+
+    items.forEach((item) => {
+      const element = document.getElementById(item.id)
+      if (element) {
+        observer.observe(element)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [items])
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault()
+    const element = document.getElementById(id)
+    if (element) {
+      const offset = 80
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: "smooth",
+      })
+    }
+  }
+
+  return (
+    <nav className="hidden xl:block">
+      <div className="sticky top-8">
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            onClick={onToggle}
+            className={`p-1 rounded transition-colors ${
+              isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+            }`}
+            aria-label={isCollapsed ? "Expand table of contents" : "Collapse table of contents"}
+          >
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              className={`transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          <h4 className={`text-sm font-medium ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+            On this page
+          </h4>
+        </div>
+        <div 
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            isCollapsed ? "max-h-0 opacity-0" : "max-h-[2000px] opacity-100"
+          }`}
+        >
+          <ul className="space-y-2">
+            {items.map((item) => (
+              <li key={item.id}>
+                <a
+                  href={`#${item.id}`}
+                  onClick={(e) => handleClick(e, item.id)}
+                  className={`block text-sm transition-colors leading-relaxed ${
+                    item.level === 3 ? "pl-3" : ""
+                  } ${
+                    activeId === item.id
+                      ? isDarkMode
+                        ? "text-white font-medium"
+                        : "text-black font-medium"
+                      : isDarkMode
+                      ? "text-white/50 hover:text-white/80"
+                      : "text-black/50 hover:text-black/80"
+                  }`}
+                >
+                  {item.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  )
+}
 
 // Content component for the circuit matching post (needs isDarkMode)
 function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
   return (
     <>
-      <h2>The Hidden Infrastructure Problem</h2>
+      <h2 id="hidden-infrastructure-problem">The Hidden Infrastructure Problem</h2>
       <p>
         Think about what happens when you click &quot;Buy Now&quot; on a website. Your browser sends a request to a web server, which talks to a payment processor, which communicates with your bank, which approves the transaction, and confirmation ripples back through the entire chain—all in under two seconds. This seemingly simple action relies on decades of infrastructure development: compilers that translate high-level code to machine instructions, operating systems that manage resources, and networking protocols that route data across continents.
       </p>
@@ -32,7 +166,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         For quantum computers? We&apos;re still figuring it out.
       </p>
 
-      <h2>The Qubit Routing Problem</h2>
+      <h2 id="qubit-routing-problem">The Qubit Routing Problem</h2>
       <p>
         Here&apos;s the fundamental challenge. Suppose you&apos;ve written a quantum algorithm that requires 10 qubits to run a Grover&apos;s search. You submit it to a quantum computer with, say, 127 physical qubits. The question is deceptively simple: <strong>which 10 physical qubits should run your algorithm?</strong>
       </p>
@@ -64,7 +198,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         <strong>3. The Combinatorial Explosion</strong>: For a 10-qubit algorithm on a 127-qubit device, there are approximately <InlineMath>{String.raw`\frac{127!}{(127-10)!} \approx 10^{21}`}</InlineMath> possible mappings. Even with clever heuristics, finding the optimal placement is computationally intractable.
       </p>
 
-      <h2>The State of the Art: SABRE and Its Limitations</h2>
+      <h2 id="state-of-the-art">The State of the Art: SABRE and Its Limitations</h2>
       <p>
         The current industry standard is an algorithm called SABRE (SWAP-based BidiREctional heuristic search), developed by Li, Ding, and Xie in 2019. SABRE treats the routing problem as a graph traversal problem: find the shortest path (fewest SWAPs) to execute all the two-qubit gates in your circuit.
       </p>
@@ -83,7 +217,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         By treating all qubits and edges as equal, SABRE is like a GPS that minimizes distance while ignoring that some roads are unpaved, some bridges are structurally unsound, and some highways have 10-car pileups. In the NISQ (Noisy Intermediate-Scale Quantum) era, where noise dominates everything, minimizing hops while ignoring noise is solving the wrong problem entirely.
       </p>
 
-      <h2>NACRE: Optimizing for What Actually Matters</h2>
+      <h2 id="nacre">NACRE: Optimizing for What Actually Matters</h2>
       <p>
         At Conductor, we built NACRE (Noise-Aware Circuit Routing Engine) to optimize for the metric that actually determines whether your quantum computation succeeds: <strong>fidelity</strong>.
       </p>
@@ -113,7 +247,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         <FidelityCalculator isDarkMode={isDarkMode} />
       </div>
 
-      <h2>Why Fidelity Compounds</h2>
+      <h2 id="why-fidelity-compounds">Why Fidelity Compounds</h2>
       <p>
         This reframing changes everything. NACRE doesn&apos;t ask &quot;how do I minimize SWAPs?&quot; It asks &quot;how do I get this quantum state to the finish line with the highest probability of being correct?&quot;
       </p>
@@ -122,7 +256,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         <ErrorAccumulation isDarkMode={isDarkMode} />
       </div>
 
-      <h3>The Six-Component Cost Function</h3>
+      <h3 id="six-component-cost-function">The Six-Component Cost Function</h3>
       <p>
         When NACRE must decide which SWAP to insert, it evaluates candidates using six factors—all oriented toward maximizing fidelity:
       </p>
@@ -166,7 +300,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         Notice that SWAP count doesn&apos;t appear directly in this cost function. NACRE may insert an extra SWAP if doing so routes through higher-fidelity hardware. The algorithm trusts the physics: what matters is the final fidelity of the quantum state, not how many operations it took to get there.
       </p>
 
-      <h3>Intelligent Initial Placement</h3>
+      <h3 id="intelligent-initial-placement">Intelligent Initial Placement</h3>
       <p>
         SABRE starts with a random initial layout and hopes that bidirectional search finds something good. NACRE uses calibration data to generate intelligent starting layouts using four heuristic strategies:
       </p>
@@ -181,53 +315,20 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         <PlacementComparison isDarkMode={isDarkMode} />
       </div>
 
-      <h2>Performance: Fidelity Is the Win</h2>
+      <h2 id="performance">Performance: Fidelity Is the Win</h2>
       <p>
-        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements:
-      </p>
-      <div className={`overflow-x-auto my-4 ${isDarkMode ? "bg-white/5" : "bg-black/5"} rounded`}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className={`border-b ${isDarkMode ? "border-white/10" : "border-black/10"}`}>
-              <th className="text-left p-3 font-medium">Metric</th>
-              <th className="text-left p-3 font-medium">SABRE</th>
-              <th className="text-left p-3 font-medium">NACRE</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3 font-medium">Avg. Estimated Fidelity</td>
-              <td className="p-3">0.82</td>
-              <td className="p-3 text-green-400 font-medium">0.89 (+8.5%)</td>
-            </tr>
-            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3">Uses High-Quality Qubits</td>
-              <td className="p-3 opacity-75">Random</td>
-              <td className="p-3">Targeted</td>
-            </tr>
-            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3">Considers <InlineMath>T_2</InlineMath> Decay</td>
-              <td className="p-3 opacity-75">No</td>
-              <td className="p-3">Yes</td>
-            </tr>
-            <tr className={`border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-              <td className="p-3">Considers Gate Fidelity</td>
-              <td className="p-3 opacity-75">No</td>
-              <td className="p-3">Yes</td>
-            </tr>
-            <tr>
-              <td className="p-3">SWAP Count</td>
-              <td className="p-3 opacity-75">Minimized</td>
-              <td className="p-3">Fidelity-optimal</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <p>
-        <strong>The fidelity improvement is the headline result.</strong> The 8.5% improvement in estimated fidelity might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity—nearly doubling your success rate.
+        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements. We benchmarked NACRE against SABRE (Qiskit&apos;s default router) on 12 different quantum circuits across 6 algorithm families:
       </p>
 
-      <h2>When NACRE Excels</h2>
+      <div className="my-12">
+        <BenchmarkResults isDarkMode={isDarkMode} />
+      </div>
+
+      <p>
+        <strong>The fidelity improvement is the headline result.</strong> The average 9.3% improvement in estimated fidelity might seem modest in percentage terms, but remember: in quantum computing, fidelity is multiplicative. For a circuit with 100 two-qubit gates, the difference between <InlineMath>0.99</InlineMath> and <InlineMath>0.995</InlineMath> per-gate fidelity is the difference between <InlineMath>37\%</InlineMath> and <InlineMath>61\%</InlineMath> total circuit fidelity—nearly doubling your success rate.
+      </p>
+
+      <h2 id="when-nacre-excels">When NACRE Excels</h2>
       <p>
         NACRE provides the most benefit when:
       </p>
@@ -238,7 +339,7 @@ distance(q1, q2) = sum_of_edge_weights_along_optimal_path
         <li><strong>Coherence times matter</strong> (deep circuits where qubits must survive many operations)</li>
       </ul>
 
-      <h2>The Bigger Picture</h2>
+      <h2 id="bigger-picture">The Bigger Picture</h2>
       <p>
         NACRE represents a philosophical shift in quantum circuit compilation. Traditional routers inherited the classical computing mindset: operations are reliable, so minimize their count. But quantum operations are probabilistic. Every gate, every SWAP, every microsecond of waiting introduces some probability of error.
       </p>
@@ -267,12 +368,14 @@ const blogPosts: Record<string, {
   date: string
   content: React.ReactNode | ((isDarkMode: boolean) => React.ReactNode)
   hasInteractiveContent?: boolean
+  toc?: TocItem[]
 }> = {
   "circuit-matching-problem": {
     title: "Noise-Aware Circuit Matching: A GPS for Quantum Hardware",
     date: "2026-01-30",
     content: (isDarkMode: boolean) => <CircuitMatchingContent isDarkMode={isDarkMode} />,
     hasInteractiveContent: true,
+    toc: circuitMatchingToc,
   },
 
 }
@@ -292,6 +395,7 @@ export default function BlogPostPage() {
   const post = blogPosts[slug]
   
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const [isTocCollapsed, setIsTocCollapsed] = useState(false)
 
   if (!post) {
     return (
@@ -308,9 +412,20 @@ export default function BlogPostPage() {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-8 flex flex-col min-h-screen">
-        {/* Theme toggle button in top right */}
-        <div className="flex justify-end mb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex flex-col min-h-screen">
+        {/* Top bar with back button and theme toggle */}
+        <div className="flex justify-between items-center mb-8">
+          <Link
+            href="/"
+            className={`p-2 rounded-full transition-colors ${
+              isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+            }`}
+            aria-label="Back to home"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </Link>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`p-2 rounded-full transition-colors ${
@@ -331,72 +446,80 @@ export default function BlogPostPage() {
           </button>
         </div>
 
-        {/* Main content wrapper */}
-        <div className="flex-grow">
-          {/* Header */}
-          <div className="mb-12">
-            <Link href="/" className="hover:opacity-70 transition-opacity">
-              <h2 className="text-lg font-normal">Joel Pendleton</h2>
-            </Link>
-            <Link href="/blog" className="hover:opacity-70 transition-opacity">
-              <h3 className="text-lg font-normal">Blog</h3>
-            </Link>
-          </div>
+        {/* Main content wrapper with sidebar */}
+        <div className="flex-grow flex gap-8">
+          {/* Table of Contents Sidebar - Left side */}
+          {post.toc && post.toc.length > 0 && (
+            <aside className="w-64 flex-shrink-0">
+              <TableOfContents 
+                items={post.toc} 
+                isDarkMode={isDarkMode} 
+                isCollapsed={isTocCollapsed}
+                onToggle={() => setIsTocCollapsed(!isTocCollapsed)}
+              />
+            </aside>
+          )}
 
-          {/* Blog Post Content */}
-          <article className="mb-16">
-            <header className="mb-10">
-              <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
-              <h1 className="text-2xl sm:text-3xl font-medium mt-2 leading-tight">
-                {post.title}
-              </h1>
-            </header>
-            
-            <div className={`prose prose-lg max-w-none ${isDarkMode ? "prose-invert" : ""}`}>
-              <style jsx>{`
-                div :global(p) {
-                  margin-bottom: 1.75rem;
-                  line-height: 1.8;
-                  opacity: 0.9;
-                }
-                div :global(h2) {
-                  font-size: 1.375rem;
-                  font-weight: 500;
-                  margin-top: 3rem;
-                  margin-bottom: 1.25rem;
-                }
-                div :global(h3) {
-                  font-size: 1.15rem;
-                  font-weight: 500;
-                  margin-top: 2.5rem;
-                  margin-bottom: 1rem;
-                }
-                div :global(ul), div :global(ol) {
-                  margin-bottom: 1.75rem;
-                  padding-left: 1.5rem;
-                }
-                div :global(li) {
-                  margin-bottom: 0.625rem;
-                  line-height: 1.8;
-                  opacity: 0.9;
-                }
-                div :global(pre) {
-                  margin-bottom: 1.75rem;
-                }
-                div :global(strong) {
-                  font-weight: 600;
-                }
-                div :global(em) {
-                  font-style: italic;
-                }
-              `}</style>
-              {typeof post.content === 'function' ? post.content(isDarkMode) : post.content}
-            </div>
-          </article>
+          {/* Main content */}
+          <div className="flex-1 max-w-4xl">
+
+            {/* Blog Post Content */}
+            <article className="mb-16">
+              <header className="mb-10">
+                <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
+                <h1 className="text-2xl sm:text-3xl font-medium mt-2 leading-tight">
+                  {post.title}
+                </h1>
+              </header>
+              
+              <div className={`prose prose-lg max-w-none ${isDarkMode ? "prose-invert" : ""}`}>
+                <style jsx>{`
+                  div :global(p) {
+                    margin-bottom: 1.75rem;
+                    line-height: 1.8;
+                    opacity: 0.9;
+                  }
+                  div :global(h2) {
+                    font-size: 1.375rem;
+                    font-weight: 500;
+                    margin-top: 3rem;
+                    margin-bottom: 1.25rem;
+                    scroll-margin-top: 80px;
+                  }
+                  div :global(h3) {
+                    font-size: 1.15rem;
+                    font-weight: 500;
+                    margin-top: 2.5rem;
+                    margin-bottom: 1rem;
+                    scroll-margin-top: 80px;
+                  }
+                  div :global(ul), div :global(ol) {
+                    margin-bottom: 1.75rem;
+                    padding-left: 1.5rem;
+                  }
+                  div :global(li) {
+                    margin-bottom: 0.625rem;
+                    line-height: 1.8;
+                    opacity: 0.9;
+                  }
+                  div :global(pre) {
+                    margin-bottom: 1.75rem;
+                  }
+                  div :global(strong) {
+                    font-weight: 600;
+                  }
+                  div :global(em) {
+                    font-style: italic;
+                  }
+                `}</style>
+                {typeof post.content === 'function' ? post.content(isDarkMode) : post.content}
+              </div>
+            </article>
+          </div>
         </div>
 
         {/* Footer Links Section */}
-        <div className="mt-auto pt-8 pb-4 border-t border-current/10">
+        <div className="mt-auto pt-8 pb-4 border-t border-current/10 max-w-4xl">
           <div className="flex flex-wrap gap-4 text-sm">
             <Link href="/" className="hover:opacity-70">Home</Link>
             <Link href="/blog" className="hover:opacity-70">Blog</Link>

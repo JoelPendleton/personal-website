@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://joelpendleton.com"),
   title: "Joel Pendleton - CTO at Conductor Quantum",
-  description: "Joel Pendleton is CTO and Co-Founder at Conductor Quantum, building quantum computers on silicon chips. Previously at Oxford, Y Combinator S24, and various quantum computing companies.",
+  description: "Joel Pendleton is CTO and Co-Founder at Conductor Quantum, building software for quantum computers. Previously at Oxford, Y Combinator S24, and various quantum computing companies.",
   keywords: ["Joel Pendleton", "quantum computing", "CTO", "Conductor Quantum", "silicon quantum computers", "Y Combinator", "Oxford", "quantum technology"],
   authors: [{ name: "Joel Pendleton", url: "https://joelpendleton.com" }],
   creator: "Joel Pendleton",

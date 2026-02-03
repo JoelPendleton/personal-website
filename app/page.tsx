@@ -7,6 +7,25 @@ import Link from "next/link"
 // Available shapes from the Dithering component
 const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
 
+// Blog post data
+const blogPosts = [
+  {
+    slug: "circuit-matching-problem",
+    title: "The Circuit Matching Problem: Why Your Quantum Computer Needs GPS",
+    date: "2026-01-30",
+    excerpt: "The quantum computing industry has a hidden infrastructure problem. We explore the qubit routing challenge and introduce NACRE, a noise-aware routing engine that optimizes for fidelity instead of SWAP count.",
+  },
+]
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  })
+}
+
 export default function ResumePage() {
   const [isDarkMode, setIsDarkMode] = useState(true)
   
@@ -17,7 +36,7 @@ export default function ResumePage() {
 
   return (
     <div className="relative min-h-screen grid grid-cols-1 xl:grid-cols-[1fr_1fr]">
-      <div className={`p-4 sm:p-8 relative z-10 flex flex-col ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
+      <div className={`p-4 sm:p-8 relative z-10 flex flex-col  ${isDarkMode ? "bg-black text-white" : "bg-white text-black"}`}>
         {/* Theme toggle button in top right of left panel */}
         <div className="flex justify-end mb-2 sm:mb-0">
           <button
@@ -187,12 +206,36 @@ export default function ResumePage() {
             </tbody>
           </table>
         </div>
+
+        {/* Divider */}
+        <hr className="border-t border-current opacity-20 mb-10 w-full sm:w-[600px] lg:w-[640px]" />
+
+        {/* Writing Section */}
+        <div className="mb-12 w-full sm:w-[600px] lg:w-[640px]">
+          <h3 className="text-lg sm:text-xl font-medium mb-6">Writing</h3>
+          <div className="space-y-6">
+            {blogPosts.map((post) => (
+              <article key={post.slug} className="group">
+                <Link href={`/blog/${post.slug}`} className="block">
+                  <div className="mb-1">
+                    <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
+                  </div>
+                  <h4 className="text-base sm:text-lg font-medium mb-2 group-hover:opacity-70 transition-opacity">
+                    {post.title}
+                  </h4>
+                  <p className="text-sm opacity-75 leading-relaxed">
+                    {post.excerpt}
+                  </p>
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
         </div>
 
         {/* Footer Links Section - positioned at bottom */}
         <div className="mt-auto py-2 sm:pb-0 sm:pt-8">
           <div className="flex space-x-4 text-sm">
-            <Link href="/blog" className="hover:opacity-70">Blog</Link>
             <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>
             <a href="https://www.linkedin.com/in/joelpendleton" className="hover:opacity-70">LinkedIn</a>
             <a href="https://github.com/joelpendleton" className="hover:opacity-70">GitHub</a>
