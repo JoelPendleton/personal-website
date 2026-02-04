@@ -26,7 +26,7 @@ export function Math({ children, className = "" }: MathProps) {
   return (
     <div 
       ref={containerRef} 
-      className={`my-6 overflow-x-auto ${className}`}
+      className={`overflow-x-auto ${className}`}
     />
   )
 }

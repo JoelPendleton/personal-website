@@ -546,21 +546,25 @@ function DetailedResultsTable({
                           View
                         </button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                      <DialogContent 
+                        className="max-w-2xl max-h-[80vh] overflow-hidden"
+                        style={{
+                          backgroundColor: isDarkMode ? '#171717' : '#ffffff',
+                          borderColor: muted.border,
+                        }}
+                      >
                         <DialogHeader>
-                          <DialogTitle>{circuitType} Circuit - Qiskit Implementation</DialogTitle>
-                          <DialogDescription>
+                          <DialogTitle style={{ color: muted.textPrimary }}>{circuitType} Circuit - Qiskit Implementation</DialogTitle>
+                          <DialogDescription style={{ color: muted.textMuted }}>
                             {circuitInfo?.description}
                           </DialogDescription>
                         </DialogHeader>
                         {circuitInfo && (
-                          <div className="mt-4">
                             <CodeBlock
                               isDarkMode={isDarkMode}
                               language="python"
                               code={circuitInfo.code}
                             />
-                          </div>
                         )}
                       </DialogContent>
                     </Dialog>
