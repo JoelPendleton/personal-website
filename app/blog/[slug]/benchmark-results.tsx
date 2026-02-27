@@ -159,7 +159,7 @@ const tailwindColors = {
   red: twColors.red[500],
   yellow: twColors.yellow[500],
   amber: twColors.amber[500],
-  blue: twColors.blue[500],
+  blue: twColors.blue[400],
   gray: twColors.gray[500],
 }
 
