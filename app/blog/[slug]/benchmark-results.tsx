@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell, ErrorBar } from "recharts"
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell, ErrorBar, Label } from "recharts"
 import { CodeBlock } from "../components"
 import {
   ChartContainer,
@@ -615,12 +615,12 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
         <p className="text-[10px] sm:text-xs mb-4" style={{ color: muted.textMuted }}>
           NACRE&apos;s gains vary with device quality. Real NISQ devices have high noise variance.
         </p>
-        <ChartContainer config={chartConfig} className="min-h-[100px] sm:min-h-[120px] h-[140px] sm:h-[160px] w-full !aspect-auto">
+        <ChartContainer config={chartConfig} className="min-h-[120px] sm:min-h-[140px] h-[165px] sm:h-[185px] w-full !aspect-auto">
           <BarChart 
             accessibilityLayer
             data={regimeComparisonData} 
             layout="vertical"
-            margin={{ top: 5, right: 30, bottom: 5, left: 120 }}
+            margin={{ top: 5, right: 30, bottom: 25, left: 120 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={muted.gridLine} horizontal={true} vertical={false} />
             <XAxis 
@@ -631,7 +631,9 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
               tickLine={{ stroke: muted.border }}
               axisLine={{ stroke: muted.border }}
               allowDataOverflow={true}
-            />
+            >
+              <Label value="Avg Fidelity Gain (%)" position="bottom" offset={10} style={{ fill: muted.textMuted, fontSize: 11 }} />
+            </XAxis>
             <YAxis 
               type="category"
               dataKey="regime"
@@ -682,6 +684,16 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
             </Bar>
           </BarChart>
         </ChartContainer>
+        <div className="flex items-center gap-1.5 mt-4 justify-end">
+          <svg width="16" height="10" viewBox="0 0 16 10" className="shrink-0">
+            <line x1="2" y1="5" x2="14" y2="5" stroke={muted.errorBar} strokeWidth={1.5} />
+            <line x1="2" y1="2" x2="2" y2="8" stroke={muted.errorBar} strokeWidth={1.5} />
+            <line x1="14" y1="2" x2="14" y2="8" stroke={muted.errorBar} strokeWidth={1.5} />
+          </svg>
+          <span className="text-[10px] sm:text-xs" style={{ color: muted.textMuted }}>
+            Error bars show ±1 standard deviation across circuits
+          </span>
+        </div>
       </div>
 
 
@@ -694,7 +706,7 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
           <BarChart 
             accessibilityLayer
             data={primaryBenchmarkData} 
-            margin={{ top: 20, right: 20, bottom: 50, left: 40 }}
+            margin={{ top: 20, right: 20, bottom: 50, left: 30 }}
             barGap={2}
           >
             <CartesianGrid strokeDasharray="3 3" stroke={muted.gridLine} vertical={false} />
@@ -713,7 +725,9 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
               domain={[0, 1]}
               tickLine={{ stroke: muted.border }}
               axisLine={{ stroke: muted.border }}
-            />
+            >
+              <Label value="Fidelity" position="insideLeft" angle={-90} offset={0} style={{ fill: muted.textMuted, fontSize: 11, textAnchor: 'middle' }} />
+            </YAxis>
             <ChartTooltip
               cursor={{ fill: "rgba(255, 255, 255, 0.15)" }}
               content={
@@ -775,13 +789,21 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded" style={{ backgroundColor: colors.sabre }} />
             <span className="text-xs sm:text-sm" style={{ color: muted.textSecondary }}>SABRE</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <svg width="16" height="10" viewBox="0 0 16 10" className="shrink-0">
+              <line x1="2" y1="5" x2="14" y2="5" stroke={muted.errorBar} strokeWidth={1.5} />
+              <line x1="2" y1="2" x2="2" y2="8" stroke={muted.errorBar} strokeWidth={1.5} />
+              <line x1="14" y1="2" x2="14" y2="8" stroke={muted.errorBar} strokeWidth={1.5} />
+            </svg>
+            <span className="text-xs sm:text-sm" style={{ color: muted.textSecondary }}>±1 std dev</span>
+          </div>
         </div>
       </div>
 
       {/* Fidelity Gain Chart */}
       <div className="rounded-lg border p-4 sm:p-6 overflow-x-auto" style={{ backgroundColor: muted.bgSubtle, borderColor: muted.border }}>
         <h4 className="text-xs sm:text-sm font-medium mb-4" style={{ color: muted.textPrimary }}>
-          Fidelity Improvement Over SABRE (%)
+          Fidelity Improvement Over SABRE
         </h4>
         <ChartContainer config={chartConfig} className="h-[240px] sm:h-[280px] w-full min-w-[500px] !aspect-auto">
           <BarChart 
@@ -806,7 +828,9 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
               axisLine={{ stroke: muted.border }}
               domain={[0, (dataMax: number) => Math.ceil(dataMax / 5) * 5 + 5]}
               allowDataOverflow={true}
-            />
+            >
+              <Label value="Fidelity Gain (%)" position="insideLeft" angle={-90} offset={0} style={{ fill: muted.textMuted, fontSize: 11, textAnchor: 'middle' }} />
+            </YAxis>
             <ChartTooltip
               cursor={{ fill: "rgba(255, 255, 255, 0.15)" }}
               content={
@@ -851,6 +875,16 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
             </Bar>
           </BarChart>
         </ChartContainer>
+        <div className="flex items-center gap-1.5 mt-4 justify-end">
+          <svg width="16" height="10" viewBox="0 0 16 10" className="shrink-0">
+            <line x1="8" y1="2" x2="8" y2="8" stroke={muted.errorBar} strokeWidth={1.5} />
+            <line x1="5" y1="2" x2="11" y2="2" stroke={muted.errorBar} strokeWidth={1.5} />
+            <line x1="5" y1="8" x2="11" y2="8" stroke={muted.errorBar} strokeWidth={1.5} />
+          </svg>
+          <span className="text-[10px] sm:text-xs" style={{ color: muted.textMuted }}>
+            Error bars show ±1 standard deviation across noise samples
+          </span>
+        </div>
       </div>
 
       {/* Detailed Results Table with Regime Toggle */}
