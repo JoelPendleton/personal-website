@@ -9,7 +9,7 @@ import colors from "tailwindcss/colors"
 const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
 
 // Blog post data
-const blogPosts = [
+const writingsPosts = [
   {
     slug: "circuit-matching-problem",
     title: "The Circuit Matching Problem: Why Your Quantum Computer Needs GPS",
@@ -66,7 +66,7 @@ export default function ResumePage() {
         <div className="flex-grow">
           {/* Header */}
           <div className="mb-8 sm:mb-12">
-            <div className="mb-6 sm:mb-8 pt-8 sm:pt-12">
+            <div className="mb-6 sm:mb-8 pt-8">
               <h2 className="text-xl sm:text-lg font-normal">Joel Pendleton</h2>
               <h3 className="text-xl sm:text-lg font-normal">CTO at <a href="https://conductorquantum.com" className="underline">Conductor Quantum</a>  </h3>
               <p className="text-sm opacity-75 mt-2">Building software infrastructure for quantum computers</p>
@@ -209,22 +209,22 @@ export default function ResumePage() {
         </div>
 
         {/* Divider */}
-        <hr className="border-t-1.5 border-current opacity-20 mb-10 w-full sm:w-[600px] lg:w-[640px]" />
+        <hr className="border-t-1.5 border-current opacity-10 mb-14 w-full sm:w-[600px] lg:w-[640px]" />
 
         {/* Writing Section */}
-        <div className="mb-12 w-full sm:w-[600px] lg:w-[640px]">
-          <h3 className="text-lg sm:text-xl font-medium mb-4">Writings</h3>
+        <div className="mb-14 w-full sm:w-[600px] lg:w-[640px]">
+          <h3 className="text-lg sm:text-xl font-normal mb-4">Writings</h3>
           <div className="space-y-6">
-            {blogPosts.map((post) => (
+            {writingsPosts.map((post) => (
               <article key={post.slug} className="group">
-                <Link href={`/blog/${post.slug}`} className="block">
+                <Link href={`/writings/${post.slug}`} className="block">
                   <div className="mb-1">
-                    <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
+                    <span className="font-mono text-sm opacity-75 group-hover:opacity-70 transition-opacity">{formatDate(post.date)}</span>
                   </div>
-                  <h4 className="text-base sm:text-lg font-medium mb-2 group-hover:opacity-70 transition-opacity">
+                  <h4 className="text-base sm:text-lg font-normal mb-2 group-hover:opacity-70 transition-opacity">
                     {post.title}
                   </h4>
-                  <p className="text-sm opacity-75 leading-relaxed">
+                  <p className="text-sm opacity-75 group-hover:opacity-70 transition-opacity leading-relaxed">
                     {post.excerpt}
                   </p>
                 </Link>

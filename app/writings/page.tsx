@@ -9,7 +9,7 @@ import colors from "tailwindcss/colors"
 const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
 
 // Blog post data - in a real app, this would come from a CMS or MDX files
-const blogPosts = [
+const writingsPosts = [
   {
     slug: "circuit-matching-problem",
     title: "The Circuit Matching Problem: Why Your Quantum Computer Needs GPS",
@@ -79,9 +79,9 @@ export default function BlogPage() {
 
           {/* Blog Posts List */}
           <div className="mb-12 space-y-8">
-            {blogPosts.map((post) => (
+            {writingsPosts.map((post) => (
               <article key={post.slug} className="group">
-                <Link href={`/blog/${post.slug}`} className="block">
+                <Link href={`/writings/${post.slug}`} className="block">
                   <div className="mb-1">
                     <span className="font-mono text-sm opacity-75">{formatDate(post.date)}</span>
                   </div>

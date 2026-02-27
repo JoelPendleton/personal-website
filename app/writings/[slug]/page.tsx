@@ -564,7 +564,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 }
 
 // Blog post data - in a real app, this would come from a CMS or MDX files
-const blogPosts: Record<string, {
+const writingsPosts: Record<string, {
   title: string
   date: string
   content: React.ReactNode | ((isDarkMode: boolean) => React.ReactNode)
@@ -593,7 +593,7 @@ function formatDate(dateString: string): string {
 export default function BlogPostPage() {
   const params = useParams()
   const slug = params.slug as string
-  const post = blogPosts[slug]
+  const post = writingsPosts[slug]
   
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [isTocCollapsed, setIsTocCollapsed] = useState(false)
@@ -604,8 +604,8 @@ export default function BlogPostPage() {
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
           <h1 className="text-2xl mb-4">Post not found</h1>
-          <Link href="/blog" className="underline hover:opacity-70">
-            Back to blog
+          <Link href="/writings" className="underline hover:opacity-70">
+            Back to writings
           </Link>
         </div>
       </div>
@@ -799,7 +799,7 @@ export default function BlogPostPage() {
         <div className="mt-auto pt-6 sm:pt-8 pb-4">
           <div className="flex flex-wrap gap-3 sm:gap-4 text-sm">
             <Link href="/" className="hover:opacity-70">Home</Link>
-            <Link href="/blog" className="hover:opacity-70">Blog</Link>
+            <Link href="/writings" className="hover:opacity-70">Blog</Link>
             <a href="https://x.com/joelpendleton" className="hover:opacity-70">X</a>
             <a href="https://www.linkedin.com/in/joelpendleton" className="hover:opacity-70">LinkedIn</a>
             <a href="https://github.com/joelpendleton" className="hover:opacity-70">GitHub</a>
