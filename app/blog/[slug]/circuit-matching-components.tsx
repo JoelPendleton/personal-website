@@ -774,8 +774,6 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
   const muted = getMutedColors(isDarkMode)
 
   const totalFidelity = Math.pow(gateFidelity, gateCount)
-  const improvedFidelity = Math.pow(gateFidelity + 0.005, gateCount)
-  const improvement = improvedFidelity - totalFidelity
 
   const sliderTrack = muted.strokeMuted
 
@@ -824,20 +822,13 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
           </div>
         </div>
 
-        <div className="flex items-end justify-between pt-2 gap-4">
-          <div>
-            <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Circuit fidelity</p>
-            <p className="text-xl sm:text-2xl font-mono leading-none" style={{ margin: 0, marginTop: '4px' }}>{(totalFidelity * 100).toFixed(1)}%</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>With +0.5% per gate</p>
-            <p className="text-xl sm:text-2xl font-mono leading-none" style={{ color: colors.good, margin: 0, marginTop: '4px' }}>{(improvedFidelity * 100).toFixed(1)}%</p>
-          </div>
+        <div className="pt-2">
+          <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Circuit fidelity</p>
+          <p className="text-xl sm:text-2xl font-mono leading-none" style={{ color: totalFidelity < 0.5 ? colors.bad : undefined, margin: 0, marginTop: '4px' }}>{(totalFidelity * 100).toFixed(1)}%</p>
+          <p className="text-xs sm:text-sm pt-2" style={{ color: muted.textMuted, margin: 0 }}>
+            {(gateFidelity * 100).toFixed(1)}%<sup>{gateCount}</sup> = {(totalFidelity * 100).toFixed(1)}%
+          </p>
         </div>
-
-        <p className="text-xs sm:text-sm pt-1" style={{ color: muted.textMuted, margin: 0 }}>
-          Small improvements compound to <span className="font-mono" style={{ color: colors.good }}>+{(improvement * 100).toFixed(0)}%</span> total
-        </p>
       </div>
     </div>
   )
