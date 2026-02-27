@@ -698,10 +698,23 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
           <div className="flex-1 space-y-2 min-w-0">
             <button
               onClick={() => setSelectedPath("short")}
-              className="w-full text-left px-3 py-2.5 rounded-md transition-colors"
+              className={`w-full text-left px-3 py-2.5 rounded-md transition-all cursor-pointer ${selectedPath === "short" ? "shadow-sm" : ""}`}
               style={{ 
                 backgroundColor: selectedPath === "short" ? muted.bgMuted : "transparent",
-                color: selectedPath === "short" ? muted.textPrimary : muted.textSecondary
+                color: selectedPath === "short" ? muted.textPrimary : muted.textSecondary,
+                border: `1px solid ${selectedPath === "short" ? (isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)") : (isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)")}`,
+              }}
+              onMouseEnter={(e) => {
+                if (selectedPath !== "short") {
+                  e.currentTarget.style.backgroundColor = isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
+                  e.currentTarget.style.borderColor = isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedPath !== "short") {
+                  e.currentTarget.style.backgroundColor = "transparent"
+                  e.currentTarget.style.borderColor = isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"
+                }
               }}
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -713,10 +726,23 @@ export function CostFunctionComparison({ isDarkMode }: { isDarkMode: boolean }) 
 
             <button
               onClick={() => setSelectedPath("quality")}
-              className="w-full text-left px-3 py-2.5 rounded-md transition-colors"
+              className={`w-full text-left px-3 py-2.5 rounded-md transition-all cursor-pointer ${selectedPath === "quality" ? "shadow-sm" : ""}`}
               style={{ 
                 backgroundColor: selectedPath === "quality" ? muted.bgMuted : "transparent",
-                color: selectedPath === "quality" ? muted.textPrimary : muted.textSecondary
+                color: selectedPath === "quality" ? muted.textPrimary : muted.textSecondary,
+                border: `1px solid ${selectedPath === "quality" ? (isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)") : (isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)")}`,
+              }}
+              onMouseEnter={(e) => {
+                if (selectedPath !== "quality") {
+                  e.currentTarget.style.backgroundColor = isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
+                  e.currentTarget.style.borderColor = isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (selectedPath !== "quality") {
+                  e.currentTarget.style.backgroundColor = "transparent"
+                  e.currentTarget.style.borderColor = isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"
+                }
               }}
             >
               <div className="flex items-center justify-between gap-2 flex-wrap">
