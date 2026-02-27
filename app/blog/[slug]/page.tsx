@@ -297,7 +297,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h2 id="qubit-routing-problem">The Qubit Routing Problem</h2>
       <p>
-        Here&apos;s the fundamental challenge. Suppose you&apos;ve written a quantum algorithm that requires 10 qubits to run a Grover&apos;s search. You submit it to a quantum computer with, say, 127 physical qubits. The question is deceptively simple: <strong>which 10 physical qubits should run your algorithm?</strong>
+        Here&apos;s the fundamental challenge. Suppose you&apos;ve written a quantum algorithm that requires 10 qubits to run a Grover&apos;s search. You submit it to a quantum computer with, say, 127 physical qubits. The question is simple: <strong>which 10 physical qubits should run your algorithm?</strong>
       </p>
       <p>
         This is hard for three reasons:
