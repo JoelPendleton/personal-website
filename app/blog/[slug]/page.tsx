@@ -303,7 +303,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         This is a hard choice to make for three reasons:
       </p>
       <p>
-        <strong>1. Limited Connectivity</strong>: Unlike classical bits that can interact with any other bit through software routing, physical qubits can only directly interact with their neighbors. On IBM&apos;s superconducting quantum processors, each qubit typically connects to only 2-4 other qubits. If your algorithm needs qubits 0 and 15 to interact but they&apos;re not neighbors, you must &quot;teleport&quot; the quantum information through intermediate qubits using SWAP operations. Each SWAP introduces errors.
+        <strong>1. Limited Connectivity</strong>: Physical qubits can only directly interact with their nearest neighbors. On IBM&apos;s heavy-hex superconducting processors, each qubit connects to just 2 or 3 others. If your algorithm needs qubits 0 and 15 to interact but they&apos;re not neighbors, you must shuttle the quantum state through intermediate qubits using SWAP operations. Each SWAP introduces errors.
       </p>
 
       <div className="my-12">
