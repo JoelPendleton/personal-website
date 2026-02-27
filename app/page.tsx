@@ -69,7 +69,7 @@ export default function ResumePage() {
             <div className="mb-6 sm:mb-8 pt-8 sm:pt-12">
               <h2 className="text-xl sm:text-lg font-normal">Joel Pendleton</h2>
               <h3 className="text-xl sm:text-lg font-normal">CTO at <a href="https://conductorquantum.com" className="underline">Conductor Quantum</a>  </h3>
-              <p className="text-sm opacity-75 mt-2">Building quantum computers on silicon chips</p>
+              <p className="text-sm opacity-75 mt-2">Building software infrastructure for quantum computers</p>
             </div>
           </div>
 
@@ -213,7 +213,7 @@ export default function ResumePage() {
 
         {/* Writing Section */}
         <div className="mb-12 w-full sm:w-[600px] lg:w-[640px]">
-          <h3 className="text-lg sm:text-xl font-medium mb-4">Blog</h3>
+          <h3 className="text-lg sm:text-xl font-medium mb-4">Writings</h3>
           <div className="space-y-6">
             {blogPosts.map((post) => (
               <article key={post.slug} className="group">
