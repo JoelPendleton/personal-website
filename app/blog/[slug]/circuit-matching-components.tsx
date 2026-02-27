@@ -822,10 +822,10 @@ export function FidelityCalculator({ isDarkMode }: { isDarkMode: boolean }) {
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 text-right">
           <p className="text-xs leading-none" style={{ color: muted.textMuted, margin: 0 }}>Circuit fidelity</p>
           <p className="text-xl sm:text-2xl font-mono leading-none" style={{ color: totalFidelity < 0.5 ? colors.bad : undefined, margin: 0, marginTop: '4px' }}>{(totalFidelity * 100).toFixed(1)}%</p>
-          <p className="text-xs sm:text-sm pt-2" style={{ color: muted.textMuted, margin: 0 }}>
+          <p className="text-xs sm:text-sm font-mono pt-2" style={{ color: muted.textMuted, margin: 0 }}>
             {(gateFidelity * 100).toFixed(1)}%<sup>{gateCount}</sup> = {(totalFidelity * 100).toFixed(1)}%
           </p>
         </div>

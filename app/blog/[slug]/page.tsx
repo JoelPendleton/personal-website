@@ -430,7 +430,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h3 id="intelligent-initial-placement">Intelligent Initial Placement</h3>
       <p>
-        SABRE starts with a random initial layout and hopes that bidirectional search finds something good. NACRE uses calibration data to generate intelligent starting layouts using four heuristic strategies:
+        SABRE starts with a random initial layout and hopes that bidirectional search finds something good. NACRE uses qubit calibration data to generate intelligent starting layouts using four heuristic strategies:
       </p>
       <ol>
         <li><strong>Interaction-Weighted</strong>: Highly-interacting logical qubits get mapped to adjacent high-fidelity physical qubits. If qubits 0 and 1 in your algorithm interact 50 times, place them on the best-connected physical edge.</li>
