@@ -249,7 +249,7 @@ export default function ResumePage() {
         <Dithering
           style={{ height: "100%", width: "100%" }}
           colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 100%)"}
-          colorFront={colors.blue[600]}
+          colorFront={colors.blue[400]}
           shape={randomShape}
           type="4x4"
           pxSize={3}

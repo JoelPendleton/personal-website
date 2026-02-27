@@ -3,6 +3,7 @@
 import { Dithering } from "@paper-design/shaders-react"
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import colors from "tailwindcss/colors"
 
 // Available shapes from the Dithering component
 const shapes = ['simplex', 'warp', 'dots', 'wave', 'swirl'] as const
@@ -112,7 +113,7 @@ export default function BlogPage() {
         <Dithering
           style={{ height: "100%", width: "100%" }}
           colorBack={isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 100%)"}
-          colorFront="hsl(220, 100%, 70%)"
+          colorFront={colors.blue[400]}
           shape={randomShape}
           type="4x4"
           pxSize={3}
