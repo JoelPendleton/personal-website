@@ -297,10 +297,10 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h2 id="qubit-routing-problem">The Qubit Routing Problem</h2>
       <p>
-        Here&apos;s the fundamental challenge. Suppose you&apos;ve written a quantum algorithm that requires 10 qubits to run a Grover&apos;s search. You submit it to a quantum computer with, say, 127 physical qubits. The question is simple: <strong>which 10 physical qubits should run your algorithm?</strong>
+        Here&apos;s the fundamental challenge. Suppose you&apos;ve written a quantum algorithm that requires 10 qubits to run a Grover&apos;s search. You submit it to a quantum computer with, say, 127 physical qubits. The question is simple: <strong>which 10 physical qubits out of the 127 should run your algorithm?</strong>
       </p>
       <p>
-        This is hard for three reasons:
+        This is a hard choice to make for three reasons:
       </p>
       <p>
         <strong>1. Limited Connectivity</strong>: Unlike classical bits that can interact with any other bit through software routing, physical qubits can only directly interact with their neighbors. On IBM&apos;s superconducting quantum processors, each qubit typically connects to only 2-4 other qubits. If your algorithm needs qubits 0 and 15 to interact but they&apos;re not neighbors, you must &quot;teleport&quot; the quantum information through intermediate qubits using SWAP operations. Each SWAP introduces errors.
@@ -314,7 +314,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         <strong>2. Not All Qubits Are Created Equal</strong>: This is where things get really interesting. On a real quantum processor:
       </p>
       <ul>
-        <li>Qubit 3 might maintain coherence (<InlineMath>T_2</InlineMath>) for 100 microseconds while Qubit 7 only lasts 40 microseconds</li>
+        <li>Qubit 3 might maintain coherence (<InlineMath>T_2</InlineMath>) for 100 microseconds while Qubit 7 only lasts for 40 microseconds</li>
         <li>The two-qubit gate between qubits (2,3) might have 99% fidelity while the gate between (5,6) has only 95%</li>
         <li>Readout accuracy varies from 92% to 99% across different qubits</li>
       </ul>
@@ -332,7 +332,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         The current industry standard is an algorithm called SABRE (SWAP-based BidiREctional heuristic search), developed by Li, Ding, and Xie in 2019. SABRE treats the routing problem as a graph traversal problem: find the shortest path (fewest SWAPs) to execute all the two-qubit gates in your circuit.
       </p>
       <p>
-        SABRE works reasonably well, and it&apos;s what Qiskit uses under the hood. But it has a fundamental blind spot: <strong>it optimizes for the wrong objective</strong>.
+        SABRE works reasonably well, and it&apos;s what IBM&apos;s <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.transpiler.passes.SabreSwap" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">Qiskit</a> uses under the hood. But it has a fundamental blind spot: <strong>it optimizes for the wrong objective</strong>.
       </p>
       <p>
         When SABRE minimizes SWAP count, it&apos;s treating SWAPs as the enemy. But SWAPs aren&apos;t inherently the enemy. <em>Errors</em> are. And here&apos;s the key insight: <strong>a single SWAP through a noisy edge can be worse than three SWAPs through pristine edges</strong>.
@@ -445,7 +445,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h2 id="performance">Performance: Fidelity Is the Win</h2>
       <p>
-        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements. We benchmarked NACRE against SABRE (Qiskit&apos;s default router) across {benchmarkStats.goodRegime.totalCircuits} different quantum circuits spanning {benchmarkStats.algorithmFamilyCount} algorithm families, testing three different fidelity regimes:
+        On circuits with heterogeneous device calibration (i.e., realistic NISQ devices), NACRE delivers substantial fidelity improvements. We benchmarked NACRE against SABRE across {benchmarkStats.goodRegime.totalCircuits} different quantum circuits spanning {benchmarkStats.algorithmFamilyCount} algorithm families, testing three different fidelity regimes:
       </p>
 
       <div className="my-12">
@@ -544,7 +544,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h2 id="bigger-picture">The Bigger Picture</h2>
       <p>
-        NACRE represents a philosophical shift in quantum circuit compilation. Traditional routers inherited the classical computing mindset: operations are reliable, so minimize their count. But quantum operations are probabilistic. Every gate, every SWAP, every microsecond of waiting introduces some probability of error.
+        NACRE represents a shift in quantum circuit compilation. Traditional routers inherited the classical computing mindset: operations are reliable, so minimize their count. But quantum operations are probabilistic. Every gate, every SWAP, every microsecond of waiting introduces some probability of error.
       </p>
       <p>
         The right objective function isn&apos;t &quot;minimize operations&quot;; it&apos;s &quot;maximize the probability that this computation returns the correct answer.&quot; NACRE is a production routing engine built around this principle.
