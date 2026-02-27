@@ -425,7 +425,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         </table>
       </div>
       <p>
-        Notice that SWAP count doesn&apos;t appear directly in this cost function. NACRE may insert an extra SWAP if doing so routes through higher-fidelity hardware. The algorithm trusts the physics: what matters is the final fidelity of the quantum state, not how many operations it took to get there.
+        Notice that SWAP count doesn&apos;t appear directly in this cost function. NACRE may insert an extra SWAP if doing so routes through higher-fidelity hardware.
       </p>
 
       <h3 id="intelligent-initial-placement">Intelligent Initial Placement</h3>
@@ -458,7 +458,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h3 id="fidelity-vs-swap-tradeoff">The Fidelity vs SWAP Tradeoff</h3>
       <p>
-        A key finding: <strong>NACRE sometimes uses slightly more SWAPs than SABRE, yet achieves significantly higher fidelity</strong>. This is by design. For example, the QFT-4 circuit shows NACRE using an average of 2.1 SWAPs versus SABRE&apos;s 2.0, but achieving a +13.8% fidelity improvement in the good regime.
+        <strong>NACRE uses more SWAPs than SABRE on {benchmarkStats.circuitsWithMoreSwaps}/{benchmarkStats.totalCircuitsAllRegimes} circuits ({benchmarkStats.avgSwapIncreasePct}% more on average), yet achieves +{benchmarkStats.regimeGains.good}% higher fidelity on average</strong>. This is by design. For example, the QFT-4 circuit shows NACRE using an average of 2.1 SWAPs versus SABRE&apos;s 2.0, but achieving a +13.8% fidelity improvement in the good regime.
       </p>
       <p>
         Consider why this happens: when your circuit needs to route quantum information from qubit A to qubit B, SABRE finds the shortest path: two hops through qubit C. But what if the A-C edge has 90% fidelity while a three-hop path through D and E has 99% fidelity on each edge?
@@ -477,7 +477,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
       </p>
       <ul>
         <li>The device has <strong>high variance in qubit quality</strong> (which all real NISQ devices do)</li>
-        <li>The device has <strong>sparse connectivity</strong> (superconducting architectures)</li>
+        <li>The device has <strong>sparse connectivity</strong>, e.g. superconducting architectures</li>
         <li>Circuits have <strong>many two-qubit gates</strong> (where routing overhead accumulates)</li>
         <li><strong>Coherence times matter</strong> (deep circuits where qubits must survive many operations)</li>
       </ul>
@@ -521,7 +521,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
         </table>
       </div>
       <p>
-        The gains are largest on noisy devices (+{benchmarkStats.regimeGains.noisy}% average), where NACRE wins on {benchmarkStats.noisyRegime.nacreWins}/{benchmarkStats.noisyRegime.totalCircuits} circuits. But here&apos;s the critical insight: <strong>at excellent fidelities, NACRE&apos;s smaller percentage gains become more meaningful</strong>. Why? Because larger circuits remain in the &quot;useful&quot; fidelity range.
+        The gains are largest on noisy devices (+{benchmarkStats.regimeGains.noisy}% average), where NACRE wins on {benchmarkStats.noisyRegime.nacreWins}/{benchmarkStats.noisyRegime.totalCircuits} circuits. But here&apos;s the critical insight: <strong>at excellent fidelities, NACRE&apos;s smaller percentage gains become more meaningful</strong>. Why? Because on excellent hardware the baseline fidelity is already high, so NACRE&apos;s improvement is enough to keep larger circuits above the threshold where results are reliable.
       </p>
       <p>
         Consider a medium-depth circuit. On noisy hardware, even with NACRE&apos;s improvement, the absolute fidelity may be marginal. But on excellent hardware with NACRE&apos;s +{benchmarkStats.regimeGains.excellent}% improvement, circuits that would have been borderline unusable become viable for real applications.

@@ -365,6 +365,19 @@ const nacreWins = primaryBenchmarkData.filter(d => d.fidGain > 0.01).length
 // Count unique algorithm families from the circuit names (e.g., "GHZ-4" -> "GHZ")
 const algorithmFamilies = new Set(primaryBenchmarkData.map(d => d.circuit.split("-")[0]))
 
+// Average percentage increase in SWAPs for NACRE vs SABRE (across all regimes)
+const allRegimeData = [...benchmarkDataNoisy, ...benchmarkDataGood, ...benchmarkDataExcellent]
+const avgSwapIncreasePct = Math.round(
+  allRegimeData
+    .filter(d => d.sabreSwaps > 0)
+    .reduce((sum, d) => sum + ((d.nacreSwaps - d.sabreSwaps) / d.sabreSwaps) * 100, 0)
+  / allRegimeData.filter(d => d.sabreSwaps > 0).length
+)
+
+// Count circuits where NACRE uses more SWAPs than SABRE (across all regimes)
+const circuitsWithMoreSwaps = allRegimeData.filter(d => d.nacreSwaps > d.sabreSwaps).length
+const totalCircuitsAllRegimes = allRegimeData.length
+
 // Compute win rates and max gains for each regime
 const noisyWins = benchmarkDataNoisy.filter(d => d.fidGain > 0.01).length
 const excellentWins = benchmarkDataExcellent.filter(d => d.fidGain > 0.01).length
@@ -400,6 +413,10 @@ export const benchmarkStats = {
   maxGainCircuitExcellent: maxGainExcellent,
   // Number of unique algorithm families tested
   algorithmFamilyCount: algorithmFamilies.size,
+  // SWAP stats for page.tsx prose
+  avgSwapIncreasePct,
+  circuitsWithMoreSwaps,
+  totalCircuitsAllRegimes,
 }
 
 // Regime labels for display
@@ -907,15 +924,15 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
         <ul className="space-y-2 text-xs sm:text-sm" style={{ color: muted.textPrimary }}>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
-            <span><strong>NACRE wins on {nacreWins}/{primaryBenchmarkData.length} circuits</strong> in the good regime with an average fidelity gain of +{avgFidGain.toFixed(1)}%</span>
+            <span><strong>NACRE wins across all fidelity regimes</strong>, outperforming SABRE on {benchmarkStats.noisyRegime.nacreWins}/{benchmarkStats.noisyRegime.totalCircuits} circuits in the noisy regime, {nacreWins}/{primaryBenchmarkData.length} in the good regime, and {benchmarkStats.excellentRegime.nacreWins}/{benchmarkStats.excellentRegime.totalCircuits} in the excellent regime</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
-            <span><strong>Gains scale with noise</strong>: +{regimeComparisonData[0].avgGain}% on noisy devices, +{regimeComparisonData[2].avgGain}% on excellent devices</span>
+            <span><strong>Fidelity gains scale with noise</strong>: +{regimeComparisonData[0].avgGain}% on noisy devices, +{regimeComparisonData[2].avgGain}% on excellent devices</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
-            <span><strong>{benchmarkStats.maxGainCircuit.circuit} shows maximum gain</strong> (+{benchmarkStats.maxGainCircuit.fidGain.toFixed(1)}% in good regime) - circuits requiring non-trivial routing benefit most</span>
+            <span><strong>{benchmarkStats.maxGainCircuit.circuit} shows maximum gain</strong> (+{benchmarkStats.maxGainCircuit.fidGain.toFixed(1)}% in the good fidelity regime) — circuits requiring non-trivial routing benefit most</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: colors.nacre }}>●</span>
@@ -923,7 +940,7 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
           </li>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
-            <span><strong>SWAP count is secondary</strong>: NACRE may use slightly more SWAPs when they route through higher-fidelity hardware</span>
+            <span><strong>SWAP count is secondary</strong>: NACRE may use slightly ({avgSwapIncreasePct}% more on average) more SWAPs when they route through higher-fidelity hardware</span>
           </li>
         </ul>
       </div>
@@ -936,7 +953,7 @@ export function BenchmarkResults({ isDarkMode }: { isDarkMode: boolean }) {
         <ul className="space-y-2 text-xs sm:text-sm" style={{ color: muted.textPrimary }}>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
-            <span><strong>{benchmarkData.metadata.runs_per_circuit} runs per circuit</strong> with random device calibrations per seed for reproducibility</span>
+            <span><strong>{benchmarkData.metadata.runs_per_circuit} runs per circuit</strong>, each with a unique randomly generated device calibration (deterministic seeds 0–{benchmarkData.metadata.runs_per_circuit - 1} for reproducibility)</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="flex-shrink-0" style={{ color: muted.textMuted }}>●</span>
