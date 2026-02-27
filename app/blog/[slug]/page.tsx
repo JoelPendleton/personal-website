@@ -529,11 +529,7 @@ function CircuitMatchingContent({ isDarkMode }: { isDarkMode: boolean }) {
 
       <h2 id="path-to-fault-tolerance">NACRE and the Path to Fault Tolerance</h2>
       <p>
-        An honest question: does noise-aware routing matter in the fault-tolerant era? The short answer is <strong>NACRE is explicitly a NISQ-era tool</strong>, and that&apos;s a feature, not a limitation.
-      </p>
-  
-      <p>
-        The entire purpose of quantum error correction is to encode logical qubits such that logical operations have near-perfect, <em>uniform</em> fidelity. This eliminates the variance that NACRE exploits. When all paths are equivalent, SWAP minimization (what SABRE does) becomes the right objective again.
+        Does noise-aware routing matter in the fault-tolerant era? No. <strong>NACRE is explicitly a NISQ-era tool</strong>. It exploits the fidelity variance that defines today&apos;s hardware. Quantum error correction makes gate fidelities near-perfect and <em>uniform</em>, eliminating that variance entirely, at which point SWAP minimization (what SABRE does) becomes the right objective again.
       </p>
       <p>
         NACRE&apos;s architecture is designed with this evolution in mind. Today, it exploits fidelity variance to find high-quality paths on NISQ hardware. As QPUs become fault-tolerant and gate fidelities become uniform, we will evolve NACRE to shift its optimization focus toward minimizing circuit depth and gate overhead, the metrics that matter most when errors are correctable. This adaptability means NACRE maximizes fidelity for today&apos;s noisy hardware while positioning itself for tomorrow&apos;s fault-tolerant systems.
