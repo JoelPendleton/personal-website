@@ -209,10 +209,10 @@ export default function ResumePage() {
         </div>
 
         {/* Divider */}
-        <hr className="border-t-1.5 border-current opacity-10 mb-14 w-full sm:w-[600px] lg:w-[640px]" />
+        <hr className="border-t-1.5 border-current opacity-10 mb-12 w-full sm:w-[600px] lg:w-[640px]" />
 
         {/* Writing Section */}
-        <div className="mb-14 w-full sm:w-[600px] lg:w-[640px]">
+        <div className="mb-12 w-full sm:w-[600px] lg:w-[640px]">
           <h3 className="text-lg sm:text-xl font-normal mb-4">Writings</h3>
           <div className="space-y-6">
             {writingsPosts.map((post) => (
